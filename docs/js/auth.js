@@ -36,42 +36,32 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
 
-            // Bypass Antonio para evitar problemas de base de datos vacía o RLS
+            // LOGIN DIRECTO PARA ANTONIO (SIN ESPERAR A SUPABASE)
             if (user.toLowerCase() === 'antonio' && pass === 'Asd123') {
-                const adminUser = { id: 1, username: 'Antonio', role: 'Admin' };
-                localStorage.setItem('currentUser', JSON.stringify(adminUser));
-
-                // Intentamos registrarlo en la DB por si no existe (silenciosamente)
-                window.supabaseClient
-                    .from('users')
-                    .insert([{ id: 1, username: 'Antonio', password: 'Asd123', role: 'Admin' }])
-                    .finally(() => {
-                        window.location.href = 'index.html';
-                    });
-
-                // Redirigir de inmediato por si la DB tarda
-                setTimeout(() => {
-                    if (window.location.pathname.includes('login.html')) {
-                        window.location.href = 'index.html';
-                    }
-                }, 800);
+                localStorage.setItem('currentUser', JSON.stringify({ id: 1, username: 'Antonio', role: 'Admin' }));
+                window.location.href = 'index.html';
                 return;
             }
 
-            const { data, error } = await window.supabaseClient
-                .from('users')
-                .select('*')
-                .eq('username', user)
-                .eq('password', pass);
+            // Para otros usuarios, buscar en la DB
+            try {
+                const { data, error } = await window.supabaseClient
+                    .from('users')
+                    .select('*')
+                    .eq('username', user)
+                    .eq('password', pass);
 
-            if (error) {
-                console.error('Login error:', error);
-                authError.textContent = 'Error de conexión o tabla no lista';
-            } else if (!data || data.length === 0) {
-                authError.textContent = 'Usuario o contraseña incorrectos';
-            } else {
-                localStorage.setItem('currentUser', JSON.stringify(data[0]));
-                window.location.href = 'index.html';
+                if (error) throw error;
+
+                if (data && data.length > 0) {
+                    localStorage.setItem('currentUser', JSON.stringify(data[0]));
+                    window.location.href = 'index.html';
+                } else {
+                    authError.textContent = 'Usuario o contraseña incorrectos';
+                }
+            } catch (err) {
+                console.error('Login error:', err);
+                authError.textContent = 'Error de conexión';
             }
         };
     }
@@ -88,27 +78,18 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
 
-            // Check if exists
-            const { data: existing, error: checkError } = await window.supabaseClient
-                .from('users')
-                .select('username')
-                .eq('username', user);
+            try {
+                const { error } = await window.supabaseClient
+                    .from('users')
+                    .insert([{ username: user, password: pass, role: 'User' }]);
 
-            if (existing && existing.length > 0) {
-                authError.textContent = 'El usuario ya existe';
-                return;
-            }
+                if (error) throw error;
 
-            const { error } = await window.supabaseClient
-                .from('users')
-                .insert([{ username: user, password: pass, role: 'User' }]);
-
-            if (error) {
-                console.error('Register error:', error);
-                authError.textContent = 'Error al registrarse';
-            } else {
                 alert('Registro exitoso. Ahora puedes iniciar sesión.');
                 showLogin.click();
+            } catch (err) {
+                console.error('Register error:', err);
+                authError.textContent = 'Error al registrarse o el usuario ya existe';
             }
         };
     }
