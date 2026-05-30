@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pastel Music Player</title>
+    <title>Music Player</title>
     <link rel="stylesheet" href="css/styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -11,10 +11,11 @@
 </head>
 <body>
     <div class="app-container">
+        <button id="menu-toggle" class="menu-toggle"><i class="fas fa-bars"></i></button>
         <!-- Sidebar para Playlists -->
-        <aside class="sidebar">
+        <aside class="sidebar" id="sidebar">
             <div class="sidebar-header">
-                <h2 class="logo-text" id="user-display-title">Usuario</h2>
+                <h2 class="logo-text" id="user-display-title" style="font-size: 1.2rem; text-transform: uppercase; letter-spacing: 2px;"></h2>
                 <button id="btn-admin-link" class="btn-admin" style="display: none;">Admin</button>
             </div>
 
@@ -37,7 +38,7 @@
         <!-- Main Content -->
         <main class="main-content">
             <header class="content-header">
-                <h1 id="current-view-title">Todas las Canciones</h1>
+                <h2 id="current-view-title" style="font-size: 1rem; color: #aaa; font-weight: 400;">Todas las Canciones</h2>
                 <div class="search-bar">
                     <input type="text" id="search-input" placeholder="Buscar música...">
                 </div>
@@ -96,6 +97,19 @@
         </div>
     </div>
 
+    <div id="add-to-playlist-modal" class="modal">
+        <div class="modal-content">
+            <h3>Añadir a Playlist</h3>
+            <select id="playlist-select" class="playlist-select">
+                <!-- Dinámico -->
+            </select>
+            <div class="modal-buttons">
+                <button id="cancel-add-song" class="btn-secondary">Cancelar</button>
+                <button id="confirm-add-song" class="btn-primary">Añadir</button>
+            </div>
+        </div>
+    </div>
+
     <audio id="main-audio"></audio>
 
     <script src="js/supabase.js"></script>
@@ -112,6 +126,13 @@
                 adminBtn.style.display = 'block';
                 adminBtn.onclick = () => window.location.href = 'adminUsers.html';
             }
+
+            // Mobile menu toggle
+            const menuToggle = document.getElementById('menu-toggle');
+            const sidebar = document.getElementById('sidebar');
+            menuToggle.onclick = () => {
+                sidebar.classList.toggle('open');
+            };
         });
     </script>
 </body>

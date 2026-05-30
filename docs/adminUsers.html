@@ -3,26 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Administración de Usuarios - Pastel Music</title>
+    <title>Usuarios</title>
     <link rel="stylesheet" href="css/styles.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
-    <nav class="navbar">
-        <h1 class="logo-text" id="admin-user-title">Admin</h1>
-        <div class="nav-links">
-            <a href="index.html">Volver al Reproductor</a>
-            <button onclick="logout()" class="btn-logout">Cerrar Sesión</button>
-        </div>
-    </nav>
-
-    <div class="admin-container">
+    <div class="admin-container" style="padding-top: 1rem;">
+        <button onclick="window.location.href='index.html'" class="btn-icon" style="position: absolute; top: 1rem; left: 1rem;"><i class="fas fa-home"></i></button>
 
         <section class="user-management">
-            <h2>Gestión de Usuarios</h2>
-
-            <div class="create-user-box">
-                <h3>Crear Nuevo Usuario</h3>
+            <div class="create-user-box" style="margin-top: 2rem;">
                 <div class="form-row">
                     <input type="text" id="new-username" placeholder="Nombre de usuario">
                     <input type="password" id="new-password" placeholder="Contraseña">
@@ -57,7 +47,6 @@
     <script>
         document.addEventListener('DOMContentLoaded', async () => {
             const currentUser = checkAuth();
-            document.getElementById('admin-user-title').textContent = currentUser.username + ' (Admin)';
             if (currentUser.role !== 'Admin') {
                 alert('No tienes permisos de administrador');
                 window.location.href = 'index.html';

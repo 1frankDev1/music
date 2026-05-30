@@ -112,22 +112,51 @@ async function updatePlaylistOrder() {
 
 // Global function to add song to playlist (called from player.js render)
 async function addSongToPlaylist(songId) {
-    const plId = prompt('ID de la playlist a la que quieres añadir (puedes ver el ID en la consola o implementar un selector mejor):');
-    if (!plId) return;
+    const modal = document.getElementById('add-to-playlist-modal');
+    const select = document.getElementById('playlist-select');
+    const cancelBtn = document.getElementById('cancel-add-song');
+    const confirmBtn = document.getElementById('confirm-add-song');
 
-    const { data: count } = await window.supabaseClient
-        .from('playlist_songs')
-        .select('id', { count: 'exact' })
-        .eq('playlist_id', plId);
+    // Llenar select
+    select.innerHTML = '';
+    currentPlaylists.forEach(pl => {
+        const opt = document.createElement('option');
+        opt.value = pl.id;
+        opt.textContent = pl.name;
+        select.appendChild(opt);
+    });
 
-    const { error } = await window.supabaseClient
-        .from('playlist_songs')
-        .insert([{
-            playlist_id: plId,
-            song_id: songId,
-            position: count ? count.length : 0
-        }]);
+    if (currentPlaylists.length === 0) {
+        alert('Crea una playlist primero');
+        return;
+    }
 
-    if (error) alert('Error: ' + error.message);
-    else alert('Añadido con éxito');
+    modal.style.display = 'flex';
+
+    cancelBtn.onclick = () => modal.style.display = 'none';
+
+    confirmBtn.onclick = async () => {
+        const plId = select.value;
+
+        const { data: currentSongs } = await window.supabaseClient
+            .from('playlist_songs')
+            .select('id')
+            .eq('playlist_id', plId);
+
+        const { error } = await window.supabaseClient
+            .from('playlist_songs')
+            .insert([{
+                playlist_id: plId,
+                song_id: songId,
+                position: currentSongs ? currentSongs.length : 0
+            }]);
+
+        modal.style.display = 'none';
+        if (error) {
+            if (error.code === '23505') alert('La canción ya está en la playlist');
+            else alert('Error: ' + error.message);
+        } else {
+            alert('Añadido con éxito');
+        }
+    };
 }

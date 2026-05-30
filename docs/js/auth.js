@@ -28,8 +28,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const btnLogin = document.getElementById('btn-login');
     if (btnLogin) {
         btnLogin.onclick = async () => {
-            const user = document.getElementById('login-username').value;
-            const pass = document.getElementById('login-password').value;
+            const user = document.getElementById('login-username').value.trim();
+            const pass = document.getElementById('login-password').value.trim();
+
+            if (!user || !pass) {
+                authError.textContent = 'Ingresa usuario y contraseña';
+                return;
+            }
 
             const { data, error } = await window.supabaseClient
                 .from('users')
@@ -37,7 +42,23 @@ document.addEventListener('DOMContentLoaded', () => {
                 .eq('username', user)
                 .eq('password', pass);
 
-            if (error || !data || data.length === 0) {
+            if (error) {
+                console.error('Login error:', error);
+                authError.textContent = 'Error de conexión';
+            } else if (!data || data.length === 0) {
+                // Si es Antonio y no existe, lo creamos (Bypass inicial)
+                if (user === 'Antonio' && pass === 'Asd123') {
+                    const { data: newUser, error: createError } = await window.supabaseClient
+                        .from('users')
+                        .insert([{ username: 'Antonio', password: 'Asd123', role: 'Admin' }])
+                        .select();
+
+                    if (!createError && newUser && newUser.length > 0) {
+                        localStorage.setItem('currentUser', JSON.stringify(newUser[0]));
+                        window.location.href = 'index.html';
+                        return;
+                    }
+                }
                 authError.textContent = 'Usuario o contraseña incorrectos';
             } else {
                 localStorage.setItem('currentUser', JSON.stringify(data[0]));
@@ -50,11 +71,16 @@ document.addEventListener('DOMContentLoaded', () => {
     const btnRegister = document.getElementById('btn-register');
     if (btnRegister) {
         btnRegister.onclick = async () => {
-            const user = document.getElementById('reg-username').value;
-            const pass = document.getElementById('reg-password').value;
+            const user = document.getElementById('reg-username').value.trim();
+            const pass = document.getElementById('reg-password').value.trim();
+
+            if (!user || !pass) {
+                authError.textContent = 'Completa los campos';
+                return;
+            }
 
             // Check if exists
-            const { data: existing } = await window.supabaseClient
+            const { data: existing, error: checkError } = await window.supabaseClient
                 .from('users')
                 .select('username')
                 .eq('username', user);
@@ -69,6 +95,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 .insert([{ username: user, password: pass, role: 'User' }]);
 
             if (error) {
+                console.error('Register error:', error);
                 authError.textContent = 'Error al registrarse';
             } else {
                 alert('Registro exitoso. Ahora puedes iniciar sesión.');
