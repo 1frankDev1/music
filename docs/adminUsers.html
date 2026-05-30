@@ -3,42 +3,44 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gestión de Usuarios</title>
+    <title>Admin Panel | Sonic Hub</title>
     <link rel="stylesheet" href="css/styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
-<body>
-    <div class="admin-container">
-        <header style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 3rem;">
-            <button onclick="window.location.href='index.html'" class="btn-icon" title="Volver al Inicio"><i class="fas fa-home"></i></button>
-            <div style="text-align: right;">
-                <h2 style="font-weight: 700; font-size: 1.5rem; color: var(--text-main);">Administración</h2>
-                <p style="color: var(--text-muted); font-size: 0.9rem;">Gestión de usuarios y accesos</p>
-            </div>
-        </header>
+<body class="hub-layout">
+    <header class="top-nav">
+        <div class="nav-brand">
+             <button onclick="window.location.href='index.html'" class="circle-btn" style="margin-right: 1rem;"><i class="fas fa-home"></i></button>
+             <h1 class="brand-name">Admin Center</h1>
+        </div>
+    </header>
 
-        <section class="user-management">
-            <div class="auth-card" style="max-width: 100%; margin-bottom: 3rem; padding: 2rem;">
-                <div style="display: grid; grid-template-columns: 1fr 1fr 150px 120px; gap: 1rem;">
-                    <div class="input-group" style="margin-bottom: 0;">
-                        <input type="text" id="new-username" placeholder="Nombre de usuario">
+    <div class="admin-hub-container">
+        <section class="hub-primary">
+            <div class="collections-card" style="margin-bottom: 3rem; max-width: 100%;">
+                <div class="card-header">
+                    <h4>Registrar Nuevo Usuario</h4>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr auto; gap: 1rem;">
+                    <div class="hub-input" style="margin: 0;">
+                        <input type="text" id="new-username" placeholder="Usuario">
                     </div>
-                    <div class="input-group" style="margin-bottom: 0;">
-                        <input type="password" id="new-password" placeholder="Contraseña">
+                    <div class="hub-input" style="margin: 0;">
+                        <input type="password" id="new-password" placeholder="Password">
                     </div>
-                    <div class="input-group" style="margin-bottom: 0;">
-                        <select id="new-role" style="width: 100%; padding: 1rem; border-radius: 12px; border: 1px solid var(--border-color); background: var(--bg-primary); font-family: inherit;">
+                    <div class="hub-input" style="margin: 0;">
+                        <select id="new-role">
                             <option value="User">User</option>
                             <option value="Admin">Admin</option>
                         </select>
                     </div>
-                    <button id="btn-create-user" class="btn-primary" style="padding: 0;">Crear</button>
+                    <button id="btn-create-user" class="hub-btn primary">Añadir</button>
                 </div>
             </div>
 
-            <div id="user-list" class="user-list-grid">
+            <div id="user-list" class="admin-grid">
                 <!-- Dinámico -->
             </div>
         </section>
@@ -61,15 +63,11 @@
                 const password = document.getElementById('new-password').value;
                 const role = document.getElementById('new-role').value;
 
-                if (!username || !password) return alert('Por favor, completa todos los campos.');
+                if (!username || !password) return alert('Campos obligatorios');
 
-                const { error } = await window.supabaseClient
-                    .from('users')
-                    .insert([{ username, password, role }]);
-
-                if (error) {
-                    alert('Error: ' + error.message);
-                } else {
+                const { error } = await window.supabaseClient.from('users').insert([{ username, password, role }]);
+                if (error) alert(error.message);
+                else {
                     document.getElementById('new-username').value = '';
                     document.getElementById('new-password').value = '';
                     loadUsers();
@@ -79,37 +77,32 @@
 
         async function loadUsers() {
             const { data, error } = await window.supabaseClient.from('users').select('*').order('id', { ascending: true });
-            if (error) return console.error(error);
+            if (error) return;
 
             const container = document.getElementById('user-list');
             container.innerHTML = '';
 
             data.forEach(user => {
-                const div = document.createElement('div');
-                div.className = 'user-card';
-                div.innerHTML = `
-                    <div class="user-info-admin">
-                        <h4>${user.username}</h4>
-                        <p>${user.role} • ID: ${user.id}</p>
+                const card = document.createElement('div');
+                card.className = 'admin-user-card';
+                card.innerHTML = `
+                    <div>
+                        <h3 style="font-size: 1.5rem; margin-bottom: 0.5rem;">${user.username}</h3>
+                        <p style="color: var(--hub-text-muted);">${user.role} • ID: ${user.id}</p>
                     </div>
-                    <div style="display: flex; gap: 0.5rem; align-items: center;">
-                        <button onclick="window.location.href='adminAudios.html?userId=${user.id}'" class="btn-primary" style="width: auto; padding: 0.6rem 1.2rem; font-size: 0.85rem; background: var(--pastel-blue); color: var(--text-main); box-shadow: none;">
-                            <i class="fas fa-music" style="margin-right: 5px;"></i> Música
-                        </button>
-                        <button onclick="deleteUser(${user.id})" class="btn-delete" title="Eliminar Usuario">
-                            <i class="fas fa-trash-alt"></i>
-                        </button>
+                    <div style="display: flex; gap: 1rem;">
+                        <button onclick="window.location.href='adminAudios.html?userId=${user.id}'" class="hub-btn secondary" style="flex: 2;">Gestionar Música</button>
+                        <button onclick="deleteUser(${user.id})" class="logout-pill" style="width: 48px; height: 48px;"><i class="fas fa-trash"></i></button>
                     </div>
                 `;
-                container.appendChild(div);
+                container.appendChild(card);
             });
         }
 
         async function deleteUser(id) {
-            if (!confirm('¿Estás seguro de que deseas eliminar este usuario?')) return;
-            const { error } = await window.supabaseClient.from('users').delete().eq('id', id);
-            if (error) alert(error.message);
-            else loadUsers();
+            if (!confirm('Eliminar usuario?')) return;
+            await window.supabaseClient.from('users').delete().eq('id', id);
+            loadUsers();
         }
     </script>
 </body>

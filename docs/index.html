@@ -3,115 +3,119 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Music Player</title>
+    <title>Sonic Hub</title>
     <link rel="stylesheet" href="css/styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
 </head>
-<body>
-    <div class="app-container">
-        <button id="menu-toggle" class="menu-toggle"><i class="fas fa-bars"></i></button>
+<body class="hub-layout">
 
-        <aside class="sidebar" id="sidebar">
-            <div class="sidebar-header">
-                <h1 class="logo-text" id="user-display-title"></h1>
-                <button id="btn-admin-link" class="btn-icon" style="display: none;" title="Admin Panel"><i class="fas fa-cog"></i></button>
+    <header class="top-nav">
+        <div class="nav-brand">
+            <h1 id="user-display-title" class="brand-name"></h1>
+        </div>
+
+        <div class="nav-search">
+            <div class="search-wrapper">
+                <i class="fas fa-search"></i>
+                <input type="text" id="search-input" placeholder="Explora tu música...">
             </div>
+        </div>
 
-            <nav class="playlists-section">
-                <div class="section-header">
-                    <h3>Biblioteca</h3>
-                    <button id="add-playlist" class="btn-icon" title="Crear Playlist"><i class="fas fa-plus"></i></button>
+        <div class="nav-actions">
+            <button id="btn-admin-link" class="nav-btn" style="display: none;"><i class="fas fa-user-shield"></i> Admin</button>
+            <div class="user-pill">
+                <span id="display-username"></span>
+                <button onclick="logout()" class="logout-pill" title="Salir"><i class="fas fa-power-off"></i></button>
+            </div>
+        </div>
+    </header>
+
+    <div class="main-hub">
+        <aside class="hub-secondary">
+            <div class="collections-card">
+                <div class="card-header">
+                    <h4>Playlists</h4>
+                    <button id="add-playlist" class="circle-btn"><i class="fas fa-plus"></i></button>
                 </div>
-                <ul id="playlist-list">
+                <ul id="playlist-list" class="hub-playlist-links">
                     <!-- Dinámico -->
                 </ul>
-            </nav>
-
-            <div class="user-info-bottom">
-                <span id="display-username" style="font-weight: 600; color: var(--text-main);"></span>
-                <button onclick="logout()" class="btn-icon" title="Cerrar Sesión"><i class="fas fa-sign-out-alt"></i></button>
             </div>
         </aside>
 
-        <main class="main-content">
-            <header class="content-header">
-                <div class="search-bar">
-                    <i class="fas fa-search" style="position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); color: var(--text-muted);"></i>
-                    <input type="text" id="search-input" placeholder="Buscar música...">
-                </div>
-                <div class="view-info">
-                    <span id="current-view-title" style="font-weight: 600; color: var(--text-muted); font-size: 0.9rem; text-transform: uppercase; letter-spacing: 1px;"></span>
-                </div>
-            </header>
+        <main class="hub-primary">
+            <div class="hub-header">
+                <h2 id="current-view-title">Explorar Todo</h2>
+            </div>
 
-            <div class="song-list-container">
-                <ul id="song-list-ui" class="song-list">
+            <div class="song-grid-container">
+                <div id="song-list-ui" class="mosaic-grid">
                     <!-- Dinámico -->
-                </ul>
+                </div>
             </div>
         </main>
+    </div>
 
-        <footer class="player-bar">
-            <div class="now-playing">
-                <img src="https://via.placeholder.com/64" alt="Cover" id="player-cover" class="player-cover">
-                <div class="track-info">
-                    <h4 id="player-title">--</h4>
-                    <p id="player-artist">--</p>
-                </div>
+    <!-- Floating Player -->
+    <div id="floating-player" class="player-pod">
+        <div class="pod-artwork">
+            <img src="https://via.placeholder.com/150" alt="Cover" id="player-cover">
+            <div class="pod-overlay">
+                 <button id="play-pause-btn" class="pod-play-btn"><i class="fas fa-play"></i></button>
             </div>
-
-            <div class="player-controls">
-                <div class="buttons">
-                    <button id="shuffle-btn" class="btn-icon" title="Aleatorio"><i class="fas fa-random"></i></button>
-                    <button id="prev-btn" class="btn-icon"><i class="fas fa-step-backward"></i></button>
-                    <button id="play-pause-btn" class="btn-play"><i class="fas fa-play"></i></button>
-                    <button id="next-btn" class="btn-icon"><i class="fas fa-step-forward"></i></button>
-                    <button id="repeat-btn" class="btn-icon" title="Repetir"><i class="fas fa-redo"></i></button>
-                </div>
-                <div class="progress-container">
-                    <span id="current-time">0:00</span>
-                    <input type="range" id="progress-bar" value="0" min="0" max="100">
-                    <span id="total-duration">0:00</span>
-                </div>
+        </div>
+        <div class="pod-details">
+            <div class="pod-info">
+                <h4 id="player-title">Selecciona una canción</h4>
+                <p id="player-artist">--</p>
             </div>
-
-            <div class="player-options">
-                <div class="volume-control">
-                    <i class="fas fa-volume-up" id="volume-icon" style="color: var(--text-muted);"></i>
-                    <input type="range" id="volume-bar" value="80" min="0" max="100">
-                </div>
+            <div class="pod-controls">
+                <button id="shuffle-btn" class="ctrl-btn"><i class="fas fa-random"></i></button>
+                <button id="prev-btn" class="ctrl-btn"><i class="fas fa-step-backward"></i></button>
+                <button id="next-btn" class="ctrl-btn"><i class="fas fa-step-forward"></i></button>
+                <button id="repeat-btn" class="ctrl-btn"><i class="fas fa-redo"></i></button>
             </div>
-        </footer>
+            <div class="pod-progress">
+                <span id="current-time">0:00</span>
+                <input type="range" id="progress-bar" value="0" min="0" max="100">
+                <span id="total-duration">0:00</span>
+            </div>
+            <div class="pod-volume">
+                <i class="fas fa-volume-down"></i>
+                <input type="range" id="volume-bar" value="80" min="0" max="100">
+            </div>
+        </div>
     </div>
 
     <!-- Modals -->
     <div id="playlist-modal" class="modal">
-        <div class="modal-content">
-            <h3>Nueva Playlist</h3>
-            <div class="input-group">
-                <input type="text" id="playlist-name-input" placeholder="Nombre de la playlist">
+        <div class="modal-card">
+            <h3>Nueva Colección</h3>
+            <div class="hub-input">
+                <input type="text" id="playlist-name-input" placeholder="Título de la playlist">
             </div>
-            <div class="modal-buttons">
-                <button id="cancel-playlist" class="btn-secondary">Cancelar</button>
-                <button id="save-playlist" class="btn-primary">Crear</button>
+            <div class="hub-modal-actions">
+                <button id="cancel-playlist" class="hub-btn secondary">Cancelar</button>
+                <button id="save-playlist" class="hub-btn primary">Crear</button>
             </div>
         </div>
     </div>
 
     <div id="add-to-playlist-modal" class="modal">
-        <div class="modal-content">
-            <h3>Añadir a Playlist</h3>
-            <div class="input-group">
-                <select id="playlist-select" class="playlist-select" style="width: 100%; padding: 0.8rem; border-radius: 12px; border: 1px solid var(--border-color); font-family: inherit;">
+        <div class="modal-card">
+            <h3>Organizar Música</h3>
+            <p>Elige una de tus colecciones:</p>
+            <div class="hub-input">
+                <select id="playlist-select">
                     <!-- Dinámico -->
                 </select>
             </div>
-            <div class="modal-buttons">
-                <button id="cancel-add-song" class="btn-secondary">Cancelar</button>
-                <button id="confirm-add-song" class="btn-primary">Añadir</button>
+            <div class="hub-modal-actions">
+                <button id="cancel-add-song" class="hub-btn secondary">Volver</button>
+                <button id="confirm-add-song" class="hub-btn primary">Añadir</button>
             </div>
         </div>
     </div>
@@ -126,25 +130,11 @@
         document.addEventListener('DOMContentLoaded', () => {
             const user = checkAuth();
             document.getElementById('display-username').textContent = user.username;
-            document.getElementById('user-display-title').textContent = user.username;
+            document.getElementById('user-display-title').textContent = 'Sonic Hub'; // Branding fixed or dynamic
             if (user.role === 'Admin') {
                 const adminBtn = document.getElementById('btn-admin-link');
-                adminBtn.style.display = 'block';
+                adminBtn.style.display = 'inline-flex';
                 adminBtn.onclick = () => window.location.href = 'adminUsers.html';
-            }
-
-            // Mobile menu toggle
-            const menuToggle = document.getElementById('menu-toggle');
-            const sidebar = document.getElementById('sidebar');
-            menuToggle.onclick = () => {
-                sidebar.classList.toggle('open');
-            };
-
-            // Close sidebar on item click for mobile
-            if (window.innerWidth <= 768) {
-                document.getElementById('playlist-list').addEventListener('click', () => {
-                    sidebar.classList.remove('open');
-                });
             }
         });
     </script>

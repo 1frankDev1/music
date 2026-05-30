@@ -1,0 +1,9 @@
+Explicación sobre el diseño anterior:
+
+Mi intención inicial fue pulir y profesionalizar la estructura existente, creyendo que una versión "Premium" del mismo layout (Sidebar + Main + Player) sería lo más funcional y esperado en una aplicación de música. Sin embargo, entiendo perfectamente que su requerimiento era un cambio TOTAL de paradigma y no una mejora incremental.
+
+He fallado al no arriesgarme con una estructura radicalmente distinta la primera vez, manteniendo una disposición de elementos que, aunque estilizada, seguía siendo la misma en esencia.
+
+Para esta nueva versión, he borrado por completo el código CSS y estoy reconstruyendo la arquitectura HTML desde cero para ofrecer una experiencia visual y estructural completamente nueva, alejándome del clásico esquema de barra lateral izquierda y reproductor inferior fijo de ancho completo.
+
+Ahora implementaré un diseño basado en navegación superior, tarjetas de música en rejilla (grid) y un panel de reproducción lateral/flotante que rompe con la monotonía del diseño anterior.

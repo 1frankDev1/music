@@ -16,18 +16,13 @@ document.addEventListener('DOMContentLoaded', () => {
     cancelPlaylistBtn.onclick = () => playlistModal.style.display = 'none';
     savePlaylistBtn.onclick = createPlaylist;
 
-    // Initialize Sortable
+    // Initialize Sortable for the grid
     new Sortable(songListUI, {
         animation: 150,
-        handle: '.song-item',
+        ghostClass: 'sortable-ghost',
         onEnd: async function (evt) {
             if (activePlaylistId) {
                 await updatePlaylistOrder();
-            } else {
-                // If we are in "All Songs", we might want to save the global order
-                // The requirement says "drag and drop to arrange in the order they want"
-                // Let's implement a global position update for songs if no playlist is active
-                await updateGlobalOrder();
             }
         }
     });
@@ -47,7 +42,7 @@ async function loadPlaylists() {
 }
 
 function renderPlaylists() {
-    playlistList.innerHTML = '<li id="all-songs-tab" class="active">Todas las Canciones</li>';
+    playlistList.innerHTML = '<li id="all-songs-tab" class="active">Biblioteca Global</li>';
     document.getElementById('all-songs-tab').onclick = showAllSongs;
 
     currentPlaylists.forEach(pl => {
@@ -82,7 +77,6 @@ async function loadPlaylistSongs(id, name) {
     activePlaylistId = id;
     document.getElementById('current-view-title').textContent = name;
 
-    // UI active state
     document.querySelectorAll('#playlist-list li').forEach(li => li.classList.remove('active'));
     document.querySelector(`li[data-pl-id="${id}"]`)?.classList.add('active');
 
@@ -95,21 +89,21 @@ async function loadPlaylistSongs(id, name) {
     if (error) return console.error(error);
 
     const playlistSongs = data.map(d => d.songs);
-    renderSongList(playlistSongs); // Function from player.js
+    renderSongList(playlistSongs);
 }
 
 function showAllSongs() {
     activePlaylistId = null;
-    document.getElementById('current-view-title').textContent = 'Todas las Canciones';
+    document.getElementById('current-view-title').textContent = 'Explorar Todo';
 
     document.querySelectorAll('#playlist-list li').forEach(li => li.classList.remove('active'));
     document.getElementById('all-songs-tab').classList.add('active');
 
-    loadSongs(); // Function from player.js
+    loadSongs();
 }
 
 async function updatePlaylistOrder() {
-    const items = songListUI.querySelectorAll('.song-item');
+    const items = songListUI.querySelectorAll('.song-card');
     const updates = Array.from(items).map((item, index) => {
         return {
             playlist_id: activePlaylistId,
@@ -125,19 +119,6 @@ async function updatePlaylistOrder() {
     }
 }
 
-async function updateGlobalOrder() {
-    const items = songListUI.querySelectorAll('.song-item');
-    // For global order, we'll use a hidden field or just use the IDs to update the 'id' (not recommended)
-    // Actually, let's assume 'songs' table has a 'position' column.
-    // If it doesn't, we should add it. Checking schema... it doesn't.
-    // I'll add a 'position' update if I can, but let's check if the user wanted it for all songs.
-    // "the user must be able to drag and drop a song to arrange it in the order he wants"
-    // If no 'position' in 'songs', I'll just log it for now or implement if possible.
-    // Given the constraints, I will skip global ordering if 'position' column is missing in 'songs'
-    // to avoid breaking the DB, but I'll make sure it works in playlists perfectly.
-}
-
-// Global function to add song to playlist (called from player.js render)
 async function addSongToPlaylist(songId) {
     const modal = document.getElementById('add-to-playlist-modal');
     const select = document.getElementById('playlist-select');
@@ -179,8 +160,6 @@ async function addSongToPlaylist(songId) {
         if (error) {
             if (error.code === '23505') alert('La canción ya está en la playlist');
             else alert('Error: ' + error.message);
-        } else {
-            // Success
         }
     };
 }

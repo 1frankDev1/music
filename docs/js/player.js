@@ -45,11 +45,11 @@ function loadSong(index) {
 
     playerTitle.textContent = song.title;
     playerArtist.textContent = song.artist;
-    playerCover.src = song.cover_url || 'https://via.placeholder.com/64';
+    playerCover.src = song.cover_url || 'https://via.placeholder.com/150';
     audio.src = song.audio_url;
 
     // Update active class in UI
-    document.querySelectorAll('.song-item').forEach((item, i) => {
+    document.querySelectorAll('.song-card').forEach((item, i) => {
         item.classList.toggle('active', i === index);
     });
 }
@@ -148,25 +148,21 @@ function renderSongList(songsToRender) {
     songs = songsToRender;
 
     songsToRender.forEach((song, index) => {
-        const li = document.createElement('li');
-        li.className = 'song-item';
-        li.setAttribute('data-id', song.id);
-        li.innerHTML = `
-            <img src="${song.cover_url || 'https://via.placeholder.com/48'}" alt="Cover">
-            <div class="song-info">
-                <strong>${song.title}</strong>
-                <span class="song-artist">${song.artist}</span>
+        const div = document.createElement('div');
+        div.className = 'song-card';
+        div.setAttribute('data-id', song.id);
+        div.innerHTML = `
+            <img src="${song.cover_url || 'https://via.placeholder.com/300'}" alt="Cover" class="card-art">
+            <div class="card-meta">
+                <h5>${song.title}</h5>
+                <p>${song.artist} • ${song.duration || '--:--'}</p>
             </div>
-            <div class="song-artist-desktop" style="color: var(--text-muted); font-size: 0.9rem;">${song.artist}</div>
-            <div class="song-duration">${song.duration || '--:--'}</div>
-            <div class="song-actions" style="display: flex; justify-content: flex-end;">
-                <button class="btn-icon add-to-pl" data-id="${song.id}" title="Añadir a playlist"><i class="fas fa-plus"></i></button>
+            <div class="card-actions">
+                <button class="circle-btn add-to-pl" data-id="${song.id}"><i class="fas fa-plus"></i></button>
             </div>
         `;
 
-        // Hide one of the artists on mobile via CSS but let's just make it work
-
-        li.onclick = (e) => {
+        div.onclick = (e) => {
             const addBtn = e.target.closest('.add-to-pl');
             if (addBtn) {
                 if (typeof addSongToPlaylist === 'function') {
@@ -177,7 +173,7 @@ function renderSongList(songsToRender) {
             loadSong(index);
             playSong();
         };
-        list.appendChild(li);
+        list.appendChild(div);
     });
 }
 
