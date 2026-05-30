@@ -41,9 +41,11 @@ function loadSong(index) {
     currentSongIndex = index;
     const song = songs[index];
 
+    if (!song) return;
+
     playerTitle.textContent = song.title;
     playerArtist.textContent = song.artist;
-    playerCover.src = song.cover_url || 'https://via.placeholder.com/60';
+    playerCover.src = song.cover_url || 'https://via.placeholder.com/64';
     audio.src = song.audio_url;
 
     // Update active class in UI
@@ -61,6 +63,7 @@ function togglePlay() {
 }
 
 function playSong() {
+    if (!audio.src) return;
     isPlaying = true;
     audio.play();
     playBtn.innerHTML = '<i class="fas fa-pause"></i>';
@@ -73,6 +76,7 @@ function pauseSong() {
 }
 
 function nextSong() {
+    if (songs.length === 0) return;
     if (isShuffle) {
         currentSongIndex = Math.floor(Math.random() * songs.length);
     } else {
@@ -83,6 +87,7 @@ function nextSong() {
 }
 
 function prevSong() {
+    if (songs.length === 0) return;
     currentSongIndex = (currentSongIndex - 1 + songs.length) % songs.length;
     loadSong(currentSongIndex);
     playSong();
@@ -121,7 +126,9 @@ function updateProgress() {
 function setProgress() {
     const width = progressBar.value;
     const duration = audio.duration;
-    audio.currentTime = (width / 100) * duration;
+    if (duration) {
+        audio.currentTime = (width / 100) * duration;
+    }
 }
 
 function setVolume() {
@@ -138,7 +145,6 @@ function renderSongList(songsToRender) {
     const list = document.getElementById('song-list-ui');
     list.innerHTML = '';
 
-    // Actualizamos la lista de canciones actual para que la navegación coincida con la vista
     songs = songsToRender;
 
     songsToRender.forEach((song, index) => {
@@ -146,16 +152,20 @@ function renderSongList(songsToRender) {
         li.className = 'song-item';
         li.setAttribute('data-id', song.id);
         li.innerHTML = `
-            <img src="${song.cover_url || 'https://via.placeholder.com/40'}" alt="Cover">
+            <img src="${song.cover_url || 'https://via.placeholder.com/48'}" alt="Cover">
             <div class="song-info">
                 <strong>${song.title}</strong>
+                <span class="song-artist">${song.artist}</span>
             </div>
-            <div class="song-artist">${song.artist}</div>
+            <div class="song-artist-desktop" style="color: var(--text-muted); font-size: 0.9rem;">${song.artist}</div>
             <div class="song-duration">${song.duration || '--:--'}</div>
-            <div class="song-actions">
-                <button class="btn-icon add-to-pl" data-id="${song.id}"><i class="fas fa-plus"></i></button>
+            <div class="song-actions" style="display: flex; justify-content: flex-end;">
+                <button class="btn-icon add-to-pl" data-id="${song.id}" title="Añadir a playlist"><i class="fas fa-plus"></i></button>
             </div>
         `;
+
+        // Hide one of the artists on mobile via CSS but let's just make it work
+
         li.onclick = (e) => {
             const addBtn = e.target.closest('.add-to-pl');
             if (addBtn) {
@@ -171,10 +181,12 @@ function renderSongList(songsToRender) {
     });
 }
 
-let allSongs = []; // Mantenemos una copia de todas las canciones para filtrar
+let allSongs = [];
 
 async function loadSongs() {
     const user = JSON.parse(localStorage.getItem('currentUser'));
+    if (!user) return;
+
     const { data, error } = await window.supabaseClient
         .from('songs')
         .select('*')
@@ -188,13 +200,12 @@ async function loadSongs() {
 
     allSongs = data;
     songs = data;
-    if (songs.length > 0) {
+    renderSongList(songs);
+    if (songs.length > 0 && !audio.src) {
         loadSong(0);
-        renderSongList(songs);
     }
 }
 
-// Search functionality
 document.getElementById('search-input').addEventListener('input', (e) => {
     const term = e.target.value.toLowerCase();
     const filtered = allSongs.filter(s =>
