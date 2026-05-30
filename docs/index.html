@@ -14,7 +14,7 @@
         <!-- Sidebar para Playlists -->
         <aside class="sidebar">
             <div class="sidebar-header">
-                <h2 class="logo-text">Pastel<span>Music</span></h2>
+                <h2 class="logo-text" id="user-display-title">Usuario</h2>
                 <button id="btn-admin-link" class="btn-admin" style="display: none;">Admin</button>
             </div>
 
@@ -106,6 +106,7 @@
         document.addEventListener('DOMContentLoaded', () => {
             const user = checkAuth();
             document.getElementById('display-username').textContent = user.username;
+            document.getElementById('user-display-title').textContent = user.username;
             if (user.role === 'Admin') {
                 const adminBtn = document.getElementById('btn-admin-link');
                 adminBtn.style.display = 'block';
