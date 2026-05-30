@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Audios - Admin</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+    <nav class="navbar">
+        <h1 class="logo-text" id="admin-user-title">Admin - Gestión de Audios</h1>
+        <div class="nav-links">
+            <a href="adminUsers.html">Volver a Usuarios</a>
+            <button onclick="logout()" class="btn-logout">Cerrar Sesión</button>
+        </div>
+    </nav>
+
+    <div class="admin-container">
+        <section class="song-management">
+            <h2 id="target-user-display">Gestionando música para: ...</h2>
+            <div class="create-user-box">
+                <h3>Añadir Nueva Canción (Cloudinary)</h3>
+                <div class="form-row">
+                    <input type="text" id="song-title" placeholder="Título">
+                    <input type="text" id="song-artist" placeholder="Artista">
+                    <input type="text" id="song-url" placeholder="URL Audio (Cloudinary)">
+                    <input type="text" id="song-cover" placeholder="URL Cover">
+                    <button id="btn-add-song" class="btn-primary">Añadir</button>
+                </div>
+            </div>
+
+            <div class="user-list-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Título</th>
+                            <th>Artista</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="song-list-body">
+                        <!-- Dinámico -->
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </div>
+
+    <script src="js/supabase.js"></script>
+    <script src="js/auth.js"></script>
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const targetUserId = urlParams.get('userId');
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            const currentUser = checkAuth();
+            if (currentUser.role !== 'Admin') {
+                window.location.href = 'index.html';
+                return;
+            }
+
+            if (!targetUserId) {
+                alert('No se especificó usuario');
+                window.location.href = 'adminUsers.html';
+                return;
+            }
+
+            loadTargetUser();
+            loadUserSongs();
+
+            document.getElementById('btn-add-song').onclick = async () => {
+                const title = document.getElementById('song-title').value;
+                const artist = document.getElementById('song-artist').value;
+                const audio_url = document.getElementById('song-url').value;
+                const cover_url = document.getElementById('song-cover').value;
+
+                if (!title || !artist || !audio_url) return alert('Campos incompletos');
+
+                const { error } = await window.supabaseClient
+                    .from('songs')
+                    .insert([{ title, artist, audio_url, cover_url, user_id: targetUserId }]);
+
+                if (error) {
+                    alert(error.message);
+                } else {
+                    alert('Canción añadida');
+                    loadUserSongs();
+                    // Limpiar campos
+                    document.getElementById('song-title').value = '';
+                    document.getElementById('song-artist').value = '';
+                    document.getElementById('song-url').value = '';
+                    document.getElementById('song-cover').value = '';
+                }
+            };
+        });
+
+        async function loadTargetUser() {
+            const { data, error } = await window.supabaseClient
+                .from('users')
+                .select('username')
+                .eq('id', targetUserId)
+                .single();
+
+            if (data) {
+                document.getElementById('target-user-display').textContent = 'Gestionando música para: ' + data.username;
+            }
+        }
+
+        async function loadUserSongs() {
+            const { data, error } = await window.supabaseClient
+                .from('songs')
+                .select('*')
+                .eq('user_id', targetUserId);
+
+            if (error) return;
+
+            const tbody = document.getElementById('song-list-body');
+            tbody.innerHTML = '';
+
+            data.forEach(song => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${song.title}</td>
+                    <td>${song.artist}</td>
+                    <td>
+                        <button onclick="deleteSong(${song.id})" class="btn-delete">Eliminar</button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        async function deleteSong(id) {
+            if (!confirm('¿Seguro?')) return;
+            const { error } = await window.supabaseClient
+                .from('songs')
+                .delete()
+                .eq('id', id);
+
+            if (error) alert(error.message);
+            else loadUserSongs();
+        }
+    </script>
+</body>
+</html>

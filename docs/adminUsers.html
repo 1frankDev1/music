@@ -17,19 +17,6 @@
     </nav>
 
     <div class="admin-container">
-        <section class="song-management">
-            <h2>Gestión de Música (Cloudinary)</h2>
-            <div class="create-user-box">
-                <h3>Añadir Nueva Canción</h3>
-                <div class="form-row">
-                    <input type="text" id="song-title" placeholder="Título">
-                    <input type="text" id="song-artist" placeholder="Artista">
-                    <input type="text" id="song-url" placeholder="URL Audio (Cloudinary)">
-                    <input type="text" id="song-cover" placeholder="URL Cover">
-                    <button id="btn-add-song" class="btn-primary">Añadir</button>
-                </div>
-            </div>
-        </section>
 
         <section class="user-management">
             <h2>Gestión de Usuarios</h2>
@@ -99,21 +86,6 @@
             };
         });
 
-        document.getElementById('btn-add-song').onclick = async () => {
-            const title = document.getElementById('song-title').value;
-            const artist = document.getElementById('song-artist').value;
-            const audio_url = document.getElementById('song-url').value;
-            const cover_url = document.getElementById('song-cover').value;
-
-            if (!title || !artist || !audio_url) return alert('Campos incompletos');
-
-            const { error } = await window.supabaseClient
-                .from('songs')
-                .insert([{ title, artist, audio_url, cover_url }]);
-
-            if (error) alert(error.message);
-            else alert('Canción añadida');
-        };
 
         async function loadUsers() {
             const { data, error } = await window.supabaseClient
@@ -132,6 +104,7 @@
                     <td>${user.username}</td>
                     <td>${user.role}</td>
                     <td>
+                        <button onclick="window.location.href='adminAudios.html?userId=${user.id}'" class="btn-primary" style="width: auto; padding: 5px 10px; display: inline-block; margin-right: 5px;">Música</button>
                         <button onclick="deleteUser(${user.id})" class="btn-delete">Eliminar</button>
                     </td>
                 `;

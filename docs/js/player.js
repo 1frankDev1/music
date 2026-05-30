@@ -174,9 +174,11 @@ function renderSongList(songsToRender) {
 let allSongs = []; // Mantenemos una copia de todas las canciones para filtrar
 
 async function loadSongs() {
+    const user = JSON.parse(localStorage.getItem('currentUser'));
     const { data, error } = await window.supabaseClient
         .from('songs')
         .select('*')
+        .eq('user_id', user.id)
         .order('id', { ascending: true });
 
     if (error) {
