@@ -36,23 +36,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     volumeBar.addEventListener('input', setVolume);
 });
 
-async function loadSongs() {
-    const { data, error } = await window.supabaseClient
-        .from('songs')
-        .select('*')
-        .order('id', { ascending: true });
-
-    if (error) {
-        console.error('Error loading songs:', error);
-        return;
-    }
-
-    songs = data;
-    if (songs.length > 0) {
-        loadSong(0);
-        renderSongList(songs);
-    }
-}
 
 function loadSong(index) {
     currentSongIndex = index;
@@ -155,6 +138,9 @@ function renderSongList(songsToRender) {
     const list = document.getElementById('song-list-ui');
     list.innerHTML = '';
 
+    // Actualizamos la lista de canciones actual para que la navegación coincida con la vista
+    songs = songsToRender;
+
     songsToRender.forEach((song, index) => {
         const li = document.createElement('li');
         li.className = 'song-item';
@@ -185,10 +171,31 @@ function renderSongList(songsToRender) {
     });
 }
 
+let allSongs = []; // Mantenemos una copia de todas las canciones para filtrar
+
+async function loadSongs() {
+    const { data, error } = await window.supabaseClient
+        .from('songs')
+        .select('*')
+        .order('id', { ascending: true });
+
+    if (error) {
+        console.error('Error loading songs:', error);
+        return;
+    }
+
+    allSongs = data;
+    songs = data;
+    if (songs.length > 0) {
+        loadSong(0);
+        renderSongList(songs);
+    }
+}
+
 // Search functionality
 document.getElementById('search-input').addEventListener('input', (e) => {
     const term = e.target.value.toLowerCase();
-    const filtered = songs.filter(s =>
+    const filtered = allSongs.filter(s =>
         s.title.toLowerCase().includes(term) ||
         s.artist.toLowerCase().includes(term)
     );

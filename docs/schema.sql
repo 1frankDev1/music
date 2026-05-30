@@ -34,7 +34,8 @@ CREATE TABLE IF NOT EXISTS playlist_songs (
     playlist_id BIGINT REFERENCES playlists(id) ON DELETE CASCADE,
     song_id BIGINT REFERENCES songs(id) ON DELETE CASCADE,
     position INTEGER NOT NULL,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(playlist_id, song_id)
 );
 
 -- Insertar usuario administrador inicial (como se solicitó)

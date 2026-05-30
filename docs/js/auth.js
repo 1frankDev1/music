@@ -35,13 +35,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 .from('users')
                 .select('*')
                 .eq('username', user)
-                .eq('password', pass)
-                .single();
+                .eq('password', pass);
 
-            if (error || !data) {
+            if (error || !data || data.length === 0) {
                 authError.textContent = 'Usuario o contraseña incorrectos';
             } else {
-                localStorage.setItem('currentUser', JSON.stringify(data));
+                localStorage.setItem('currentUser', JSON.stringify(data[0]));
                 window.location.href = 'index.html';
             }
         };
