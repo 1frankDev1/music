@@ -40,8 +40,6 @@ CREATE TABLE IF NOT EXISTS playlist_songs (
 );
 
 -- Insertar usuario administrador inicial (como se solicitó)
--- NOTA: En un entorno real, la contraseña debería estar hasheada.
--- Para este ejercicio la guardamos en texto plano o como el usuario decida manejarlo en el JS.
-INSERT INTO users (username, password, role)
-VALUES ('Antonio', 'Asd123', 'Admin')
+INSERT INTO users (id, username, password, role)
+VALUES (1, 'Antonio', 'Asd123', 'Admin')
 ON CONFLICT (username) DO NOTHING;
