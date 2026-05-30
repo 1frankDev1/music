@@ -83,7 +83,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     .from('users')
                     .insert([{ username: user, password: pass, role: 'User' }]);
 
-                if (error) throw error;
+                if (error) throw new Error(error.message + ". Revisa SETUP_GUIDE.md.");
 
                 alert('Registro exitoso. Ahora puedes iniciar sesión.');
                 showLogin.click();
