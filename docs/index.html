@@ -6,41 +6,44 @@
     <title>Music Player</title>
     <link rel="stylesheet" href="css/styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
 </head>
 <body>
     <div class="app-container">
         <button id="menu-toggle" class="menu-toggle"><i class="fas fa-bars"></i></button>
-        <!-- Sidebar para Playlists -->
+
         <aside class="sidebar" id="sidebar">
             <div class="sidebar-header">
-                <h2 class="logo-text" id="user-display-title" style="font-size: 1.2rem; text-transform: uppercase; letter-spacing: 2px;"></h2>
-                <button id="btn-admin-link" class="btn-admin" style="display: none;">Admin</button>
+                <h1 class="logo-text" id="user-display-title"></h1>
+                <button id="btn-admin-link" class="btn-icon" style="display: none;" title="Admin Panel"><i class="fas fa-cog"></i></button>
             </div>
 
-            <div class="playlists-section">
+            <nav class="playlists-section">
                 <div class="section-header">
-                    <h3>Tus Playlists</h3>
-                    <button id="add-playlist" title="Crear Playlist"><i class="fas fa-plus"></i></button>
+                    <h3>Biblioteca</h3>
+                    <button id="add-playlist" class="btn-icon" title="Crear Playlist"><i class="fas fa-plus"></i></button>
                 </div>
                 <ul id="playlist-list">
                     <!-- Dinámico -->
                 </ul>
-            </div>
+            </nav>
 
             <div class="user-info-bottom">
-                <span id="display-username"></span>
+                <span id="display-username" style="font-weight: 600; color: var(--text-main);"></span>
                 <button onclick="logout()" class="btn-icon" title="Cerrar Sesión"><i class="fas fa-sign-out-alt"></i></button>
             </div>
         </aside>
 
-        <!-- Main Content -->
         <main class="main-content">
             <header class="content-header">
-                <h2 id="current-view-title" style="font-size: 1rem; color: #aaa; font-weight: 400;">Todas las Canciones</h2>
                 <div class="search-bar">
+                    <i class="fas fa-search" style="position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); color: var(--text-muted);"></i>
                     <input type="text" id="search-input" placeholder="Buscar música...">
+                </div>
+                <div class="view-info">
+                    <span id="current-view-title" style="font-weight: 600; color: var(--text-muted); font-size: 0.9rem; text-transform: uppercase; letter-spacing: 1px;"></span>
                 </div>
             </header>
 
@@ -51,13 +54,12 @@
             </div>
         </main>
 
-        <!-- Player Bar -->
         <footer class="player-bar">
             <div class="now-playing">
-                <img src="https://via.placeholder.com/60" alt="Cover" id="player-cover" class="player-cover">
+                <img src="https://via.placeholder.com/64" alt="Cover" id="player-cover" class="player-cover">
                 <div class="track-info">
-                    <h4 id="player-title">Título</h4>
-                    <p id="player-artist">Artista</p>
+                    <h4 id="player-title">--</h4>
+                    <p id="player-artist">--</p>
                 </div>
             </div>
 
@@ -78,7 +80,7 @@
 
             <div class="player-options">
                 <div class="volume-control">
-                    <i class="fas fa-volume-up" id="volume-icon"></i>
+                    <i class="fas fa-volume-up" id="volume-icon" style="color: var(--text-muted);"></i>
                     <input type="range" id="volume-bar" value="80" min="0" max="100">
                 </div>
             </div>
@@ -89,7 +91,9 @@
     <div id="playlist-modal" class="modal">
         <div class="modal-content">
             <h3>Nueva Playlist</h3>
-            <input type="text" id="playlist-name-input" placeholder="Nombre de la playlist">
+            <div class="input-group">
+                <input type="text" id="playlist-name-input" placeholder="Nombre de la playlist">
+            </div>
             <div class="modal-buttons">
                 <button id="cancel-playlist" class="btn-secondary">Cancelar</button>
                 <button id="save-playlist" class="btn-primary">Crear</button>
@@ -100,9 +104,11 @@
     <div id="add-to-playlist-modal" class="modal">
         <div class="modal-content">
             <h3>Añadir a Playlist</h3>
-            <select id="playlist-select" class="playlist-select">
-                <!-- Dinámico -->
-            </select>
+            <div class="input-group">
+                <select id="playlist-select" class="playlist-select" style="width: 100%; padding: 0.8rem; border-radius: 12px; border: 1px solid var(--border-color); font-family: inherit;">
+                    <!-- Dinámico -->
+                </select>
+            </div>
             <div class="modal-buttons">
                 <button id="cancel-add-song" class="btn-secondary">Cancelar</button>
                 <button id="confirm-add-song" class="btn-primary">Añadir</button>
@@ -133,6 +139,13 @@
             menuToggle.onclick = () => {
                 sidebar.classList.toggle('open');
             };
+
+            // Close sidebar on item click for mobile
+            if (window.innerWidth <= 768) {
+                document.getElementById('playlist-list').addEventListener('click', () => {
+                    sidebar.classList.remove('open');
+                });
+            }
         });
     </script>
 </body>

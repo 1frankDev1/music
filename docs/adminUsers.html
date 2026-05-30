@@ -3,42 +3,43 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Usuarios</title>
+    <title>Gestión de Usuarios</title>
     <link rel="stylesheet" href="css/styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
-    <div class="admin-container" style="padding-top: 1rem;">
-        <button onclick="window.location.href='index.html'" class="btn-icon" style="position: absolute; top: 1rem; left: 1rem;"><i class="fas fa-home"></i></button>
+    <div class="admin-container">
+        <header style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 3rem;">
+            <button onclick="window.location.href='index.html'" class="btn-icon" title="Volver al Inicio"><i class="fas fa-home"></i></button>
+            <div style="text-align: right;">
+                <h2 style="font-weight: 700; font-size: 1.5rem; color: var(--text-main);">Administración</h2>
+                <p style="color: var(--text-muted); font-size: 0.9rem;">Gestión de usuarios y accesos</p>
+            </div>
+        </header>
 
         <section class="user-management">
-            <div class="create-user-box" style="margin-top: 2rem;">
-                <div class="form-row">
-                    <input type="text" id="new-username" placeholder="Nombre de usuario">
-                    <input type="password" id="new-password" placeholder="Contraseña">
-                    <select id="new-role">
-                        <option value="User">User</option>
-                        <option value="Admin">Admin</option>
-                    </select>
-                    <button id="btn-create-user" class="btn-primary">Crear</button>
+            <div class="auth-card" style="max-width: 100%; margin-bottom: 3rem; padding: 2rem;">
+                <div style="display: grid; grid-template-columns: 1fr 1fr 150px 120px; gap: 1rem;">
+                    <div class="input-group" style="margin-bottom: 0;">
+                        <input type="text" id="new-username" placeholder="Nombre de usuario">
+                    </div>
+                    <div class="input-group" style="margin-bottom: 0;">
+                        <input type="password" id="new-password" placeholder="Contraseña">
+                    </div>
+                    <div class="input-group" style="margin-bottom: 0;">
+                        <select id="new-role" style="width: 100%; padding: 1rem; border-radius: 12px; border: 1px solid var(--border-color); background: var(--bg-primary); font-family: inherit;">
+                            <option value="User">User</option>
+                            <option value="Admin">Admin</option>
+                        </select>
+                    </div>
+                    <button id="btn-create-user" class="btn-primary" style="padding: 0;">Crear</button>
                 </div>
             </div>
 
-            <div class="user-list-container">
-                <table id="user-table">
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Usuario</th>
-                            <th>Rol</th>
-                            <th>Acciones</th>
-                        </tr>
-                    </thead>
-                    <tbody id="user-list-body">
-                        <!-- Se llenará dinámicamente -->
-                    </tbody>
-                </table>
+            <div id="user-list" class="user-list-grid">
+                <!-- Dinámico -->
             </div>
         </section>
     </div>
@@ -49,7 +50,6 @@
         document.addEventListener('DOMContentLoaded', async () => {
             const currentUser = checkAuth();
             if (currentUser.role !== 'Admin') {
-                alert('No tienes permisos de administrador');
                 window.location.href = 'index.html';
                 return;
             }
@@ -61,54 +61,53 @@
                 const password = document.getElementById('new-password').value;
                 const role = document.getElementById('new-role').value;
 
-                if (!username || !password) return alert('Campos incompletos');
+                if (!username || !password) return alert('Por favor, completa todos los campos.');
 
                 const { error } = await window.supabaseClient
                     .from('users')
                     .insert([{ username, password, role }]);
 
                 if (error) {
-                    alert('Error al crear usuario: ' + error.message);
+                    alert('Error: ' + error.message);
                 } else {
-                    alert('Usuario creado');
+                    document.getElementById('new-username').value = '';
+                    document.getElementById('new-password').value = '';
                     loadUsers();
                 }
             };
         });
 
-
         async function loadUsers() {
-            const { data, error } = await window.supabaseClient
-                .from('users')
-                .select('*');
-
+            const { data, error } = await window.supabaseClient.from('users').select('*').order('id', { ascending: true });
             if (error) return console.error(error);
 
-            const tbody = document.getElementById('user-list-body');
-            tbody.innerHTML = '';
+            const container = document.getElementById('user-list');
+            container.innerHTML = '';
 
             data.forEach(user => {
-                const tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td>${user.id}</td>
-                    <td>${user.username}</td>
-                    <td>${user.role}</td>
-                    <td>
-                        <button onclick="window.location.href='adminAudios.html?userId=${user.id}'" class="btn-primary" style="width: auto; padding: 5px 10px; display: inline-block; margin-right: 5px;">Música</button>
-                        <button onclick="deleteUser(${user.id})" class="btn-delete">Eliminar</button>
-                    </td>
+                const div = document.createElement('div');
+                div.className = 'user-card';
+                div.innerHTML = `
+                    <div class="user-info-admin">
+                        <h4>${user.username}</h4>
+                        <p>${user.role} • ID: ${user.id}</p>
+                    </div>
+                    <div style="display: flex; gap: 0.5rem; align-items: center;">
+                        <button onclick="window.location.href='adminAudios.html?userId=${user.id}'" class="btn-primary" style="width: auto; padding: 0.6rem 1.2rem; font-size: 0.85rem; background: var(--pastel-blue); color: var(--text-main); box-shadow: none;">
+                            <i class="fas fa-music" style="margin-right: 5px;"></i> Música
+                        </button>
+                        <button onclick="deleteUser(${user.id})" class="btn-delete" title="Eliminar Usuario">
+                            <i class="fas fa-trash-alt"></i>
+                        </button>
+                    </div>
                 `;
-                tbody.appendChild(tr);
+                container.appendChild(div);
             });
         }
 
         async function deleteUser(id) {
-            if (!confirm('¿Seguro que quieres eliminar este usuario?')) return;
-            const { error } = await window.supabaseClient
-                .from('users')
-                .delete()
-                .eq('id', id);
-
+            if (!confirm('¿Estás seguro de que deseas eliminar este usuario?')) return;
+            const { error } = await window.supabaseClient.from('users').delete().eq('id', id);
             if (error) alert(error.message);
             else loadUsers();
         }
