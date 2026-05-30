@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Administración de Usuarios - Pastel Music</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+    <nav class="navbar">
+        <h1 class="logo-text">Pastel<span>Music</span> Admin</h1>
+        <div class="nav-links">
+            <a href="index.html">Volver al Reproductor</a>
+            <button onclick="logout()" class="btn-logout">Cerrar Sesión</button>
+        </div>
+    </nav>
+
+    <div class="admin-container">
+        <section class="song-management">
+            <h2>Gestión de Música (Cloudinary)</h2>
+            <div class="create-user-box">
+                <h3>Añadir Nueva Canción</h3>
+                <div class="form-row">
+                    <input type="text" id="song-title" placeholder="Título">
+                    <input type="text" id="song-artist" placeholder="Artista">
+                    <input type="text" id="song-url" placeholder="URL Audio (Cloudinary)">
+                    <input type="text" id="song-cover" placeholder="URL Cover">
+                    <button id="btn-add-song" class="btn-primary">Añadir</button>
+                </div>
+            </div>
+        </section>
+
+        <section class="user-management">
+            <h2>Gestión de Usuarios</h2>
+
+            <div class="create-user-box">
+                <h3>Crear Nuevo Usuario</h3>
+                <div class="form-row">
+                    <input type="text" id="new-username" placeholder="Nombre de usuario">
+                    <input type="password" id="new-password" placeholder="Contraseña">
+                    <select id="new-role">
+                        <option value="User">User</option>
+                        <option value="Admin">Admin</option>
+                    </select>
+                    <button id="btn-create-user" class="btn-primary">Crear</button>
+                </div>
+            </div>
+
+            <div class="user-list-container">
+                <table id="user-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Usuario</th>
+                            <th>Rol</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="user-list-body">
+                        <!-- Se llenará dinámicamente -->
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </div>
+
+    <script src="js/supabase.js"></script>
+    <script src="js/auth.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            const currentUser = checkAuth();
+            if (currentUser.role !== 'Admin') {
+                alert('No tienes permisos de administrador');
+                window.location.href = 'index.html';
+                return;
+            }
+
+            loadUsers();
+
+            document.getElementById('btn-create-user').onclick = async () => {
+                const username = document.getElementById('new-username').value;
+                const password = document.getElementById('new-password').value;
+                const role = document.getElementById('new-role').value;
+
+                if (!username || !password) return alert('Campos incompletos');
+
+                const { error } = await window.supabaseClient
+                    .from('users')
+                    .insert([{ username, password, role }]);
+
+                if (error) {
+                    alert('Error al crear usuario: ' + error.message);
+                } else {
+                    alert('Usuario creado');
+                    loadUsers();
+                }
+            };
+        });
+
+        document.getElementById('btn-add-song').onclick = async () => {
+            const title = document.getElementById('song-title').value;
+            const artist = document.getElementById('song-artist').value;
+            const audio_url = document.getElementById('song-url').value;
+            const cover_url = document.getElementById('song-cover').value;
+
+            if (!title || !artist || !audio_url) return alert('Campos incompletos');
+
+            const { error } = await window.supabaseClient
+                .from('songs')
+                .insert([{ title, artist, audio_url, cover_url }]);
+
+            if (error) alert(error.message);
+            else alert('Canción añadida');
+        };
+
+        async function loadUsers() {
+            const { data, error } = await window.supabaseClient
+                .from('users')
+                .select('*');
+
+            if (error) return console.error(error);
+
+            const tbody = document.getElementById('user-list-body');
+            tbody.innerHTML = '';
+
+            data.forEach(user => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${user.id}</td>
+                    <td>${user.username}</td>
+                    <td>${user.role}</td>
+                    <td>
+                        <button onclick="deleteUser(${user.id})" class="btn-delete">Eliminar</button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        async function deleteUser(id) {
+            if (!confirm('¿Seguro que quieres eliminar este usuario?')) return;
+            const { error } = await window.supabaseClient
+                .from('users')
+                .delete()
+                .eq('id', id);
+
+            if (error) alert(error.message);
+            else loadUsers();
+        }
+    </script>
+</body>
+</html>
