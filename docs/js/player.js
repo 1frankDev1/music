@@ -183,10 +183,11 @@ async function loadSongs() {
     const user = JSON.parse(localStorage.getItem('currentUser'));
     if (!user) return;
 
+    // Cargar canciones propias Y canciones del Admin (user_id = 1)
     const { data, error } = await window.supabaseClient
         .from('songs')
         .select('*')
-        .eq('user_id', user.id)
+        .or(`user_id.eq.${user.id},user_id.eq.1`)
         .order('id', { ascending: true });
 
     if (error) {
