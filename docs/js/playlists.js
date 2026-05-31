@@ -41,10 +41,16 @@ document.addEventListener('DOMContentLoaded', () => {
     const closeBtn = document.getElementById('close-drawer');
 
     if (toggleBtn && drawer) {
-        toggleBtn.onclick = () => drawer.classList.toggle('open');
+        toggleBtn.onclick = () => {
+            drawer.classList.toggle('open');
+            toggleBtn.classList.toggle('open');
+        };
     }
     if (closeBtn && drawer) {
-        closeBtn.onclick = () => drawer.classList.remove('open');
+        closeBtn.onclick = () => {
+            drawer.classList.remove('open');
+            toggleBtn.classList.remove('open');
+        };
     }
 });
 
