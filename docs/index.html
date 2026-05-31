@@ -7,6 +7,8 @@
     <link rel="stylesheet" href="css/styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#0f172a">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
 </head>
@@ -17,24 +19,28 @@
             <h1 id="user-display-title" class="brand-name" style="text-transform: capitalize;"></h1>
         </div>
 
-        <div class="nav-search">
-            <div class="search-wrapper">
-                <i class="fas fa-search"></i>
-                <input type="text" id="search-input" placeholder="Explora tu música...">
+        <div class="nav-search-container">
+            <div class="nav-search">
+                <div class="search-wrapper">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="search-input" placeholder="Explora tu música...">
+                </div>
             </div>
-        </div>
 
-        <div class="nav-actions">
-            <button id="btn-admin-link" class="nav-btn" style="display: none;"><i class="fas fa-user-shield"></i> Admin</button>
-            <div class="user-pill">
-                <span id="display-username"></span>
-                <button onclick="logout()" class="logout-pill" title="Salir"><i class="fas fa-power-off"></i></button>
+            <div class="nav-actions">
+                <button id="btn-admin-link" class="nav-btn" style="display: none;"><i class="fas fa-user-shield"></i> Admin</button>
+                <div class="user-pill">
+                    <span id="display-username"></span>
+                    <button onclick="logout()" class="logout-pill" title="Salir"><i class="fas fa-power-off"></i></button>
+                </div>
             </div>
         </div>
     </header>
 
+    <button id="mobile-playlist-toggle" class="mobile-drawer-btn"><i class="fas fa-list"></i></button>
+
     <div class="main-hub">
-        <aside class="hub-secondary">
+        <aside class="hub-secondary" id="mobile-drawer">
             <div class="collections-card">
                 <div class="card-header">
                     <h4>Playlists</h4>
@@ -43,6 +49,7 @@
                 <ul id="playlist-list" class="hub-playlist-links">
                     <!-- Dinámico -->
                 </ul>
+                <button id="close-drawer" class="hub-btn secondary mobile-only" style="margin-top: 1rem; width: 100%;">Cerrar</button>
             </div>
         </aside>
 
@@ -141,6 +148,16 @@
                 const adminBtn = document.getElementById('btn-admin-link');
                 adminBtn.style.display = 'inline-flex';
                 adminBtn.onclick = () => window.location.href = 'adminUsers.html';
+            }
+
+            if ('serviceWorker' in navigator) {
+                window.addEventListener('load', () => {
+                    navigator.serviceWorker.register('sw.js').then(reg => {
+                        console.log('SW registered:', reg);
+                    }).catch(err => {
+                        console.log('SW registration failed:', err);
+                    });
+                });
             }
         });
     </script>

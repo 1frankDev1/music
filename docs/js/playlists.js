@@ -34,6 +34,18 @@ document.addEventListener('DOMContentLoaded', () => {
     if (toggleSortBtn) {
         toggleSortBtn.onclick = toggleSortMode;
     }
+
+    // Mobile Drawer Logic
+    const drawer = document.getElementById('mobile-drawer');
+    const toggleBtn = document.getElementById('mobile-playlist-toggle');
+    const closeBtn = document.getElementById('close-drawer');
+
+    if (toggleBtn && drawer) {
+        toggleBtn.onclick = () => drawer.classList.toggle('open');
+    }
+    if (closeBtn && drawer) {
+        closeBtn.onclick = () => drawer.classList.remove('open');
+    }
 });
 
 function toggleSortMode() {
