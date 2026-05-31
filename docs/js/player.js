@@ -45,7 +45,17 @@ function loadSong(index) {
 
     playerTitle.textContent = song.title;
     playerArtist.textContent = song.artist;
-    playerCover.src = song.cover_url || 'https://via.placeholder.com/150';
+
+    const coverContainer = document.getElementById('player-cover-container');
+    if (song.cover_url) {
+        playerCover.src = song.cover_url;
+        playerCover.style.display = 'block';
+        if (coverContainer) coverContainer.style.display = 'none';
+    } else {
+        playerCover.style.display = 'none';
+        if (coverContainer) coverContainer.style.display = 'flex';
+    }
+
     audio.src = song.audio_url;
 
     // Update active class in UI
@@ -151,14 +161,20 @@ function renderSongList(songsToRender) {
         const div = document.createElement('div');
         div.className = 'song-card';
         div.setAttribute('data-id', song.id);
+
+        const coverHtml = song.cover_url
+            ? `<img src="${song.cover_url}" class="card-art">`
+            : `<div class="card-art default-art"><i class="fas fa-music"></i></div>`;
+
         div.innerHTML = `
-            <img src="${song.cover_url || 'https://via.placeholder.com/300'}" alt="Cover" class="card-art">
+            ${coverHtml}
             <div class="card-meta">
                 <h5>${song.title}</h5>
                 <p>${song.artist} • ${song.duration || '--:--'}</p>
             </div>
             <div class="card-actions">
-                <button class="circle-btn add-to-pl" data-id="${song.id}"><i class="fas fa-plus"></i></button>
+                <button class="circle-btn add-to-pl" data-id="${song.id}" title="Añadir a Playlist"><i class="fas fa-plus"></i></button>
+                ${typeof activePlaylistId !== 'undefined' && activePlaylistId ? `<button class="circle-btn remove-from-pl" data-id="${song.id}" style="background: #ef4444; margin-left: 0.5rem;" title="Quitar de Playlist"><i class="fas fa-times"></i></button>` : ''}
             </div>
         `;
 
@@ -170,6 +186,15 @@ function renderSongList(songsToRender) {
                 }
                 return;
             }
+
+            const removeBtn = e.target.closest('.remove-from-pl');
+            if (removeBtn) {
+                if (typeof removeSongFromPlaylist === 'function') {
+                    removeSongFromPlaylist(song.id);
+                }
+                return;
+            }
+
             loadSong(index);
             playSong();
         };

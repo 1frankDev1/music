@@ -163,3 +163,23 @@ async function addSongToPlaylist(songId) {
         }
     };
 }
+
+async function removeSongFromPlaylist(songId) {
+    if (!activePlaylistId) return;
+    if (!confirm('¿Quitar canción de esta playlist?')) return;
+
+    const { error } = await window.supabaseClient
+        .from('playlist_songs')
+        .delete()
+        .eq('playlist_id', activePlaylistId)
+        .eq('song_id', songId);
+
+    if (error) {
+        showToast('Error al quitar canción', 'error');
+    } else {
+        showToast('Canción quitada', 'success');
+        // Recargar la vista actual de la playlist
+        const plName = document.getElementById('current-view-title').textContent;
+        loadPlaylistSongs(activePlaylistId, plName);
+    }
+}
