@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sonic Hub</title>
+    <title>Reproductor</title>
     <link rel="stylesheet" href="css/styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
@@ -14,7 +14,7 @@
 
     <header class="top-nav">
         <div class="nav-brand">
-            <h1 id="user-display-title" class="brand-name"></h1>
+            <h1 id="user-display-title" class="brand-name" style="text-transform: capitalize;"></h1>
         </div>
 
         <div class="nav-search">
@@ -130,7 +130,7 @@
         document.addEventListener('DOMContentLoaded', () => {
             const user = checkAuth();
             document.getElementById('display-username').textContent = user.username;
-            document.getElementById('user-display-title').textContent = 'Sonic Hub'; // Branding fixed or dynamic
+            document.getElementById('user-display-title').textContent = user.username;
             if (user.role === 'Admin') {
                 const adminBtn = document.getElementById('btn-admin-link');
                 adminBtn.style.display = 'inline-flex';
