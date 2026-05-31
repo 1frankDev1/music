@@ -15,6 +15,9 @@
              <button onclick="window.location.href='adminUsers.html'" class="circle-btn" style="margin-right: 1rem;"><i class="fas fa-arrow-left"></i></button>
              <h1 class="brand-name" id="user-info-title" style="text-transform: capitalize;"></h1>
         </div>
+        <div class="nav-actions">
+            <button id="btn-import-admin" class="nav-btn" style="display: none;"><i class="fas fa-plus-circle"></i> Librería Admin</button>
+        </div>
     </header>
 
     <div class="admin-hub-container">
@@ -31,6 +34,21 @@
                 <!-- Dinámico -->
             </div>
         </section>
+    </div>
+
+    <!-- Modal Librería Admin -->
+    <div id="admin-library-modal" class="modal">
+        <div class="modal-card" style="width: 80%; max-width: 900px; max-height: 80vh; overflow-y: auto;">
+            <h3>Librería del Administrador</h3>
+            <p style="margin-bottom: 1rem;">Selecciona las canciones que quieres pasar a este usuario:</p>
+            <div id="admin-library-list" class="mosaic-grid" style="grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); text-align: left; margin-bottom: 2rem;">
+                <!-- Dinámico -->
+            </div>
+            <div class="hub-modal-actions">
+                <button id="close-library" class="hub-btn secondary">Cerrar</button>
+                <button id="import-selected" class="hub-btn primary">Importar Seleccionadas</button>
+            </div>
+        </div>
     </div>
 
     <script src="js/supabase.js"></script>
@@ -53,8 +71,92 @@
                 document.getElementById('user-info-title').textContent = userData.username;
             }
 
+            if (targetUserId != 1) {
+                document.getElementById('btn-import-admin').style.display = 'inline-flex';
+            }
+
             loadUserSongs();
         });
+
+        // Modal Logic
+        const libraryModal = document.getElementById('admin-library-modal');
+        const btnImportAdmin = document.getElementById('btn-import-admin');
+        const btnCloseLibrary = document.getElementById('close-library');
+        const btnImportSelected = document.getElementById('import-selected');
+        let selectedSongs = new Set();
+
+        btnImportAdmin.onclick = () => {
+            libraryModal.style.display = 'flex';
+            loadAdminLibrary();
+        };
+
+        btnCloseLibrary.onclick = () => {
+            libraryModal.style.display = 'none';
+        };
+
+        async function loadAdminLibrary() {
+            const { data, error } = await window.supabaseClient.from('songs').select('*').eq('user_id', 1).order('id', { ascending: false });
+            if (error) return;
+
+            const list = document.getElementById('admin-library-list');
+            list.innerHTML = '';
+            selectedSongs.clear();
+
+            data.forEach(song => {
+                const card = document.createElement('div');
+                card.className = 'song-card';
+                card.style.padding = '1rem';
+                card.innerHTML = `
+                    <div class="card-meta">
+                        <h5 style="font-size: 1rem;">${song.title}</h5>
+                        <p style="font-size: 0.8rem;">${song.artist}</p>
+                    </div>
+                    <div style="margin-top: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+                        <input type="checkbox" class="song-checkbox" data-id="${song.id}" style="width: 20px; height: 20px; accent-color: var(--hub-accent);">
+                        <span style="font-size: 0.8rem;">Seleccionar</span>
+                    </div>
+                `;
+                card.onclick = (e) => {
+                    if (e.target.tagName !== 'INPUT') {
+                        const cb = card.querySelector('.song-checkbox');
+                        cb.checked = !cb.checked;
+                        if (cb.checked) selectedSongs.add(song); else selectedSongs.delete(song);
+                    }
+                };
+                card.querySelector('.song-checkbox').onchange = (e) => {
+                    if (e.target.checked) selectedSongs.add(song); else selectedSongs.delete(song);
+                };
+                list.appendChild(card);
+            });
+        }
+
+        btnImportSelected.onclick = async () => {
+            if (selectedSongs.size === 0) return alert('Selecciona al menos una canción');
+
+            btnImportSelected.disabled = true;
+            btnImportSelected.textContent = 'Importando...';
+
+            const songsToInsert = Array.from(selectedSongs).map(s => ({
+                title: s.title,
+                artist: s.artist,
+                audio_url: s.audio_url,
+                cover_url: s.cover_url,
+                duration: s.duration,
+                user_id: targetUserId
+            }));
+
+            const { error } = await window.supabaseClient.from('songs').insert(songsToInsert);
+
+            btnImportSelected.disabled = false;
+            btnImportSelected.textContent = 'Importar Seleccionadas';
+
+            if (error) {
+                alert('Error al importar: ' + error.message);
+            } else {
+                libraryModal.style.display = 'none';
+                loadUserSongs();
+            }
+        };
 
         dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.style.borderColor = 'var(--hub-accent)'; dropZone.style.background = 'rgba(99, 102, 241, 0.05)'; });
         dropZone.addEventListener('dragleave', () => { dropZone.style.borderColor = 'var(--hub-surface-light)'; dropZone.style.background = 'var(--hub-surface)'; });
