@@ -110,7 +110,8 @@ function renderPlaylists() {
 }
 
 async function deletePlaylist(id) {
-    if (!confirm('¿Estás seguro de que deseas eliminar esta playlist?')) return;
+    const confirmed = await window.customConfirm('¿Estás seguro de que deseas eliminar esta playlist?');
+    if (!confirmed) return;
 
     const { error } = await window.supabaseClient
         .from('playlists')
@@ -118,7 +119,7 @@ async function deletePlaylist(id) {
         .eq('id', id);
 
     if (error) {
-        alert('Error al eliminar playlist: ' + error.message);
+        await window.customAlert('Error al eliminar playlist: ' + error.message);
     } else {
         if (activePlaylistId === id) {
             showAllSongs();
@@ -138,7 +139,7 @@ async function createPlaylist() {
         .insert([{ name, user_id: user.id }]);
 
     if (error) {
-        alert('Error al crear playlist');
+        await window.customAlert('Error al crear playlist');
     } else {
         playlistModal.style.display = 'none';
         playlistNameInput.value = '';
@@ -209,7 +210,7 @@ async function addSongToPlaylist(songId) {
     });
 
     if (currentPlaylists.length === 0) {
-        alert('Crea una playlist primero');
+        await window.customAlert('Crea una playlist primero');
         return;
     }
 
@@ -233,15 +234,16 @@ async function addSongToPlaylist(songId) {
 
         modal.style.display = 'none';
         if (error) {
-            if (error.code === '23505') alert('La canción ya está en la playlist');
-            else alert('Error: ' + error.message);
+            if (error.code === '23505') await window.customAlert('La canción ya está en la playlist');
+            else await window.customAlert('Error: ' + error.message);
         }
     };
 }
 
 async function removeSongFromPlaylist(songId) {
     if (!activePlaylistId) return;
-    if (!confirm('¿Quitar canción de esta playlist?')) return;
+    const confirmed = await window.customConfirm('¿Quitar canción de esta playlist?');
+    if (!confirmed) return;
 
     const { error } = await window.supabaseClient
         .from('playlist_songs')

@@ -85,7 +85,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 if (error) throw new Error(error.message + ". Revisa SETUP_GUIDE.md.");
 
-                alert('Registro exitoso. Ahora puedes iniciar sesión.');
+                await window.customAlert('Registro exitoso. Ahora puedes iniciar sesión.');
                 showLogin.click();
             } catch (err) {
                 console.error('Register error:', err);
