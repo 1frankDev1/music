@@ -95,11 +95,13 @@
                     });
 
                     const cloudData = await response.json();
-                    if (cloudData.error) throw new Error(cloudData.error.message);
+                    if (cloudData.error) throw new Error("Cloudinary: " + cloudData.error.message + ". ¿Configuraste el preset 'ml_default' como Unsigned?");
 
-                    await window.supabaseClient.from('songs').insert([{
+                    const { error: supError } = await window.supabaseClient.from('songs').insert([{
                         title, artist, audio_url: cloudData.secure_url, duration, user_id: targetUserId
                     }]);
+
+                    if (supError) throw new Error("Supabase: " + supError.message + ". Revisa las políticas RLS.");
 
                     status.textContent = `¡${title} listo!`;
                     loadUserSongs();
