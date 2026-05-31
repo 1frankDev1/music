@@ -59,33 +59,35 @@
         </main>
     </div>
 
-    <!-- Floating Player -->
-    <div id="floating-player" class="player-pod">
-        <div class="pod-artwork">
-            <img src="https://via.placeholder.com/150" alt="Cover" id="player-cover">
-            <div class="pod-overlay">
-                 <button id="play-pause-btn" class="pod-play-btn"><i class="fas fa-play"></i></button>
-            </div>
-        </div>
-        <div class="pod-details">
-            <div class="pod-info">
+    <!-- Player Bar -->
+    <div id="player-bar" class="bottom-player-bar">
+        <div class="player-left">
+            <img src="https://via.placeholder.com/150" alt="Cover" id="player-cover" class="player-mini-cover">
+            <div class="player-info">
                 <h4 id="player-title">Selecciona una canción</h4>
                 <p id="player-artist">--</p>
             </div>
-            <div class="pod-controls">
-                <button id="shuffle-btn" class="ctrl-btn"><i class="fas fa-random"></i></button>
-                <button id="prev-btn" class="ctrl-btn"><i class="fas fa-step-backward"></i></button>
-                <button id="next-btn" class="ctrl-btn"><i class="fas fa-step-forward"></i></button>
-                <button id="repeat-btn" class="ctrl-btn"><i class="fas fa-redo"></i></button>
+        </div>
+
+        <div class="player-center">
+            <div class="player-controls">
+                <button id="shuffle-btn" class="ctrl-btn" title="Aleatorio"><i class="fas fa-random"></i></button>
+                <button id="prev-btn" class="ctrl-btn" title="Anterior"><i class="fas fa-step-backward"></i></button>
+                <button id="play-pause-btn" class="play-main-btn"><i class="fas fa-play"></i></button>
+                <button id="next-btn" class="ctrl-btn" title="Siguiente"><i class="fas fa-step-forward"></i></button>
+                <button id="repeat-btn" class="ctrl-btn" title="Repetir"><i class="fas fa-redo"></i></button>
             </div>
-            <div class="pod-progress">
-                <span id="current-time">0:00</span>
-                <input type="range" id="progress-bar" value="0" min="0" max="100">
-                <span id="total-duration">0:00</span>
+            <div class="player-progress-container">
+                <span id="current-time" class="time-label">0:00</span>
+                <input type="range" id="progress-bar" class="player-progress" value="0" min="0" max="100">
+                <span id="total-duration" class="time-label">0:00</span>
             </div>
-            <div class="pod-volume">
-                <i class="fas fa-volume-down"></i>
-                <input type="range" id="volume-bar" value="80" min="0" max="100">
+        </div>
+
+        <div class="player-right">
+            <div class="volume-container">
+                <i class="fas fa-volume-up" id="volume-icon"></i>
+                <input type="range" id="volume-bar" class="volume-slider" value="80" min="0" max="100">
             </div>
         </div>
     </div>
