@@ -192,6 +192,46 @@ body.hub-layout {
     font-weight: 700;
 }
 
+.playlist-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.delete-pl-btn {
+    background: none;
+    border: none;
+    color: var(--hub-text-muted);
+    cursor: pointer;
+    opacity: 0;
+    transition: var(--transition);
+    padding: 4px;
+}
+
+.playlist-item:hover .delete-pl-btn {
+    opacity: 1;
+}
+
+@media (max-width: 768px) {
+    .delete-pl-btn {
+        opacity: 1;
+    }
+}
+
+.delete-pl-btn:hover {
+    color: #ef4444;
+}
+
+.active-sort {
+    background: #10b981 !important;
+    transform: scale(1.1);
+}
+
+.sort-enabled .song-card {
+    cursor: move;
+    border: 1px dashed var(--hub-accent);
+}
+
 /* Grid Songs */
 .hub-header {
     margin-bottom: 2rem;
@@ -469,6 +509,18 @@ body.hub-layout {
     }
     .player-left {
         width: auto;
+    }
+}
+
+@media (max-width: 600px) {
+    .song-card .card-art, .song-card .default-art {
+        display: none;
+    }
+    .mosaic-grid {
+        grid-template-columns: 1fr;
+    }
+    .song-card {
+        padding: 1rem;
     }
 }
 

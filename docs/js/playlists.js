@@ -8,6 +8,8 @@ const songListUI = document.getElementById('song-list-ui');
 
 let currentPlaylists = [];
 let activePlaylistId = null;
+let isSortMode = false;
+let sortableInstance;
 
 document.addEventListener('DOMContentLoaded', () => {
     loadPlaylists();
@@ -17,16 +19,41 @@ document.addEventListener('DOMContentLoaded', () => {
     savePlaylistBtn.onclick = createPlaylist;
 
     // Initialize Sortable for the grid
-    new Sortable(songListUI, {
+    sortableInstance = new Sortable(songListUI, {
         animation: 150,
         ghostClass: 'sortable-ghost',
+        disabled: true,
         onEnd: async function (evt) {
             if (activePlaylistId) {
                 await updatePlaylistOrder();
             }
         }
     });
+
+    const toggleSortBtn = document.getElementById('toggle-sort-btn');
+    if (toggleSortBtn) {
+        toggleSortBtn.onclick = toggleSortMode;
+    }
 });
+
+function toggleSortMode() {
+    isSortMode = !isSortMode;
+    const btn = document.getElementById('toggle-sort-btn');
+
+    if (isSortMode) {
+        sortableInstance.option('disabled', false);
+        btn.classList.add('active-sort');
+        btn.title = 'Desactivar Ordenar';
+        btn.innerHTML = '<i class="fas fa-check"></i>';
+        songListUI.classList.add('sort-enabled');
+    } else {
+        sortableInstance.option('disabled', true);
+        btn.classList.remove('active-sort');
+        btn.title = 'Activar Ordenar';
+        btn.innerHTML = '<i class="fas fa-sort"></i>';
+        songListUI.classList.remove('sort-enabled');
+    }
+}
 
 async function loadPlaylists() {
     const user = JSON.parse(localStorage.getItem('currentUser'));
@@ -47,11 +74,39 @@ function renderPlaylists() {
 
     currentPlaylists.forEach(pl => {
         const li = document.createElement('li');
-        li.textContent = pl.name;
+        li.className = 'playlist-item';
         li.setAttribute('data-pl-id', pl.id);
-        li.onclick = () => loadPlaylistSongs(pl.id, pl.name);
+        li.innerHTML = `
+            <span>${pl.name}</span>
+            <button class="delete-pl-btn" title="Eliminar Playlist"><i class="fas fa-times"></i></button>
+        `;
+        li.onclick = (e) => {
+            if (e.target.closest('.delete-pl-btn')) {
+                deletePlaylist(pl.id);
+                return;
+            }
+            loadPlaylistSongs(pl.id, pl.name);
+        };
         playlistList.appendChild(li);
     });
+}
+
+async function deletePlaylist(id) {
+    if (!confirm('¿Estás seguro de que deseas eliminar esta playlist?')) return;
+
+    const { error } = await window.supabaseClient
+        .from('playlists')
+        .delete()
+        .eq('id', id);
+
+    if (error) {
+        alert('Error al eliminar playlist: ' + error.message);
+    } else {
+        if (activePlaylistId === id) {
+            showAllSongs();
+        }
+        loadPlaylists();
+    }
 }
 
 async function createPlaylist() {
@@ -74,6 +129,7 @@ async function createPlaylist() {
 }
 
 async function loadPlaylistSongs(id, name) {
+    if (isSortMode) toggleSortMode();
     activePlaylistId = id;
     document.getElementById('current-view-title').textContent = name;
 
@@ -93,6 +149,7 @@ async function loadPlaylistSongs(id, name) {
 }
 
 function showAllSongs() {
+    if (isSortMode) toggleSortMode();
     activePlaylistId = null;
     document.getElementById('current-view-title').textContent = 'Explorar Todo';
 
