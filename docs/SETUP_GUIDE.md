@@ -54,9 +54,9 @@ Para permitir subidas desde el navegador sin un servidor intermedio:
 1. Ve a tu **Cloudinary Dashboard**.
 2. Entra en **Settings** (icono de engranaje).
 3. Ve a la pestaña **Upload**.
-4. Desplázate hasta **Upload presets** y haz clic en **Add upload preset**.
+4. Desplázate hasta **Upload presets** y comprueba tu preset.
 5. Configura lo siguiente:
-   - **Upload preset name**: `ml_default` (o el que prefieras, pero cámbialo en `adminAudios.html`).
+   - **Upload preset name**: `vit0x7dr` (Este es el que está configurado actualmente en el código).
    - **Signing Mode**: `Unsigned` (esto es CRUCIAL).
    - **Folder**: Opcional (ej. `sonic_hub`).
 6. Haz clic en **Save**.
