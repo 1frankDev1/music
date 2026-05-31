@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Media Lab | Sonic Hub</title>
+    <title>Gestión de Música</title>
     <link rel="stylesheet" href="css/styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
@@ -13,9 +13,8 @@
     <header class="top-nav">
         <div class="nav-brand">
              <button onclick="window.location.href='adminUsers.html'" class="circle-btn" style="margin-right: 1rem;"><i class="fas fa-arrow-left"></i></button>
-             <h1 class="brand-name">Media Lab</h1>
+             <h1 class="brand-name" id="user-info-title" style="text-transform: capitalize;"></h1>
         </div>
-        <div id="user-info" style="color: var(--hub-text-muted); font-weight: 600;"></div>
     </header>
 
     <div class="admin-hub-container">
@@ -51,7 +50,7 @@
 
             const { data: userData } = await window.supabaseClient.from('users').select('username').eq('id', targetUserId).single();
             if (userData) {
-                document.getElementById('user-info').textContent = `Usuario: ${userData.username}`;
+                document.getElementById('user-info-title').textContent = userData.username;
             }
 
             loadUserSongs();

@@ -66,3 +66,10 @@ Para permitir subidas desde el navegador sin un servidor intermedio:
 ## 3. ¿Por qué sale "new row violates row-level security policy"?
 
 Este error significa que Supabase recibió la orden de guardar los datos, pero las reglas de seguridad (RLS) dicen que "nadie tiene permiso". Ejecutar el SQL de arriba solucionará este problema.
+
+4. Error: "Could not find the 'user_id' column of 'songs' in the schema cache"
+
+Si te sale este error después de crear las tablas o las políticas RLS, sigue estos pasos:
+1. **Refrescar PostgREST**: En el panel de Supabase, ve a **Settings** > **API** y busca una opción para refrescar el esquema (o simplemente espera unos minutos, a veces es automático).
+2. **Verificar nombre de columna**: Asegúrate de que al crear la tabla `songs`, la columna se llame exactamente `user_id` (todo en minúsculas y con guión bajo). Puedes borrar la tabla y volverla a crear con el script `schema.sql`.
+3. **Reiniciar conexión**: A veces, simplemente recargar la página del administrador en el navegador soluciona el problema de caché.
