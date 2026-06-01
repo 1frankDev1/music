@@ -141,6 +141,7 @@ body.hub-layout {
     grid-template-columns: 320px 1fr;
     gap: 2.5rem;
     padding: 2.5rem;
+    padding-bottom: 120px;
     max-width: 1800px;
     margin: 0 auto;
 }
@@ -638,7 +639,7 @@ body.hub-layout {
     .main-hub {
         grid-template-columns: 1fr;
         padding: 1rem;
-        margin-bottom: 180px;
+        padding-bottom: 200px;
     }
 
     .hub-header {
@@ -682,8 +683,15 @@ body.hub-layout {
 /* Admin Styling Overrides */
 .admin-hub-container {
     padding: 4rem 2rem;
+    padding-bottom: 120px;
     max-width: 1200px;
     margin: 0 auto;
+}
+
+@media (max-width: 768px) {
+    .admin-hub-container {
+        padding-bottom: 200px;
+    }
 }
 
 .admin-grid {
