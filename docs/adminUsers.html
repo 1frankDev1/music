@@ -64,10 +64,10 @@
                 const password = document.getElementById('new-password').value;
                 const role = document.getElementById('new-role').value;
 
-                if (!username || !password) return alert('Campos obligatorios');
+                if (!username || !password) return await window.customAlert('Campos obligatorios');
 
                 const { error } = await window.supabaseClient.from('users').insert([{ username, password, role }]);
-                if (error) alert("Error en Supabase: " + error.message + "\n\nRevisa el archivo SETUP_GUIDE.md para configurar las políticas RLS.");
+                if (error) await window.customAlert("Error en Supabase: " + error.message + "\n\nRevisa el archivo SETUP_GUIDE.md para configurar las políticas RLS.");
                 else {
                     document.getElementById('new-username').value = '';
                     document.getElementById('new-password').value = '';
@@ -101,7 +101,8 @@
         }
 
         async function deleteUser(id) {
-            if (!confirm('Eliminar usuario?')) return;
+            const confirmed = await window.customConfirm('¿Eliminar usuario?');
+            if (!confirmed) return;
             await window.supabaseClient.from('users').delete().eq('id', id);
             loadUsers();
         }

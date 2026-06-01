@@ -131,7 +131,7 @@
         }
 
         btnImportSelected.onclick = async () => {
-            if (selectedSongs.size === 0) return alert('Selecciona al menos una canción');
+            if (selectedSongs.size === 0) return await window.customAlert('Selecciona al menos una canción');
 
             btnImportSelected.disabled = true;
             btnImportSelected.textContent = 'Importando...';
@@ -151,7 +151,7 @@
             btnImportSelected.textContent = 'Importar Seleccionadas';
 
             if (error) {
-                alert('Error al importar: ' + error.message);
+                await window.customAlert('Error al importar: ' + error.message);
             } else {
                 libraryModal.style.display = 'none';
                 loadUserSongs();
@@ -249,7 +249,8 @@
         }
 
         async function deleteSong(id) {
-            if (!confirm('Eliminar?')) return;
+            const confirmed = await window.customConfirm('¿Eliminar canción?');
+            if (!confirmed) return;
             await window.supabaseClient.from('songs').delete().eq('id', id);
             loadUserSongs();
         }
