@@ -48,6 +48,16 @@ body.hub-layout {
     -webkit-text-fill-color: transparent;
 }
 
+@media (min-width: 769px) {
+    .nav-search-container {
+        display: flex;
+        align-items: center;
+        gap: 2rem;
+        flex: 1;
+        justify-content: flex-end;
+    }
+}
+
 .search-wrapper {
     background: var(--hub-surface);
     padding: 0.6rem 1.25rem;
@@ -76,7 +86,7 @@ body.hub-layout {
 .nav-actions {
     display: flex;
     align-items: center;
-    gap: 1.5rem;
+    gap: 2rem;
 }
 
 .nav-btn {
@@ -101,6 +111,12 @@ body.hub-layout {
     background: var(--hub-surface);
     padding: 0.5rem 0.5rem 0.5rem 1.25rem;
     border-radius: 50px;
+    border: 1px solid var(--hub-surface-light);
+    transition: var(--transition);
+}
+
+.user-pill:hover {
+    border-color: var(--hub-accent);
 }
 
 .logout-pill {
