@@ -236,3 +236,26 @@ document.getElementById('search-input').addEventListener('input', (e) => {
     );
     renderSongList(filtered);
 });
+
+// Dynamic padding to avoid player covering content
+function initDynamicSpacing() {
+    const playerBar = document.getElementById('player-bar');
+    const contentArea = document.querySelector('.main-hub') || document.querySelector('.admin-hub-container');
+
+    if (!playerBar || !contentArea) return;
+
+    const observer = new ResizeObserver(entries => {
+        for (let entry of entries) {
+            const height = playerBar.offsetHeight;
+            contentArea.style.paddingBottom = (height + 2) + 'px';
+        }
+    });
+
+    observer.observe(playerBar);
+
+    // Also run immediately
+    const height = playerBar.offsetHeight;
+    if (height > 0) contentArea.style.paddingBottom = (height + 2) + 'px';
+}
+
+document.addEventListener('DOMContentLoaded', initDynamicSpacing);
