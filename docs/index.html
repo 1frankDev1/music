@@ -28,7 +28,7 @@
             </div>
 
             <div class="nav-actions">
-                <button id="btn-admin-link" class="nav-btn" style="display: none;"><i class="fas fa-user-shield"></i> Admin</button>
+                <button id="btn-admin-link" class="nav-btn" style="display: none;">Admin</button>
                 <div class="user-pill">
                     <span id="display-username"></span>
                     <button onclick="logout()" class="logout-pill" title="Salir"><i class="fas fa-power-off"></i></button>
@@ -157,6 +157,13 @@
                     }).catch(err => {
                         console.log('SW registration failed:', err);
                     });
+                });
+
+                let refreshing;
+                navigator.serviceWorker.addEventListener('controllerchange', () => {
+                    if (refreshing) return;
+                    refreshing = true;
+                    window.location.reload();
                 });
             }
         });
