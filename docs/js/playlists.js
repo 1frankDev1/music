@@ -35,6 +35,11 @@ document.addEventListener('DOMContentLoaded', () => {
         toggleSortBtn.onclick = toggleSortMode;
     }
 
+    const multiAddBtn = document.getElementById('btn-open-multi-add');
+    if (multiAddBtn) {
+        multiAddBtn.onclick = openMultiAddModal;
+    }
+
     // Mobile Drawer Logic
     const drawer = document.getElementById('mobile-drawer');
     const toggleBtn = document.getElementById('mobile-playlist-toggle');
@@ -152,6 +157,9 @@ async function loadPlaylistSongs(id, name) {
     activePlaylistId = id;
     document.getElementById('current-view-title').textContent = name;
 
+    const multiAddBtn = document.getElementById('btn-open-multi-add');
+    if (multiAddBtn) multiAddBtn.style.display = 'inline-flex';
+
     document.querySelectorAll('#playlist-list li').forEach(li => li.classList.remove('active'));
     document.querySelector(`li[data-pl-id="${id}"]`)?.classList.add('active');
 
@@ -171,6 +179,9 @@ function showAllSongs() {
     if (isSortMode) toggleSortMode();
     activePlaylistId = null;
     document.getElementById('current-view-title').textContent = 'Explorar Todo';
+
+    const multiAddBtn = document.getElementById('btn-open-multi-add');
+    if (multiAddBtn) multiAddBtn.style.display = 'none';
 
     document.querySelectorAll('#playlist-list li').forEach(li => li.classList.remove('active'));
     document.getElementById('all-songs-tab').classList.add('active');
@@ -252,11 +263,136 @@ async function removeSongFromPlaylist(songId) {
         .eq('song_id', songId);
 
     if (error) {
-        showToast('Error al quitar canción', 'error');
+        if (typeof showToast === 'function') showToast('Error al quitar canción', 'error');
+        else await window.customAlert('Error al quitar canción');
     } else {
-        showToast('Canción quitada', 'success');
+        if (typeof showToast === 'function') showToast('Canción quitada', 'success');
         // Recargar la vista actual de la playlist
         const plName = document.getElementById('current-view-title').textContent;
         loadPlaylistSongs(activePlaylistId, plName);
+    }
+}
+
+// Multi-Add Logic
+let multiSelectedSongs = new Set();
+let allUserSongs = [];
+
+async function openMultiAddModal() {
+    if (!activePlaylistId) return;
+
+    const modal = document.getElementById('multi-add-modal');
+    const list = document.getElementById('multi-add-list');
+    const title = document.getElementById('multi-add-title');
+    const plName = document.getElementById('current-view-title').textContent;
+
+    title.textContent = `Añadir a "${plName}"`;
+    modal.style.display = 'flex';
+    list.innerHTML = '<p style="text-align: center; grid-column: 1/-1;">Cargando...</p>';
+
+    const user = JSON.parse(localStorage.getItem('currentUser'));
+
+    // Fetch all user songs
+    const { data: songs, error: songsError } = await window.supabaseClient
+        .from('songs')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('title', { ascending: true });
+
+    // Fetch songs already in the playlist
+    const { data: existing, error: existingError } = await window.supabaseClient
+        .from('playlist_songs')
+        .select('song_id')
+        .eq('playlist_id', activePlaylistId);
+
+    if (songsError) return;
+    allUserSongs = songs;
+    const existingIds = new Set(existing ? existing.map(e => e.song_id) : []);
+
+    list.innerHTML = '';
+    multiSelectedSongs.clear();
+
+    songs.forEach(song => {
+        const isInPlaylist = existingIds.has(song.id);
+        const card = document.createElement('div');
+        card.className = 'song-card' + (isInPlaylist ? ' in-playlist' : '');
+        card.style.padding = '1rem';
+
+        card.innerHTML = `
+            <div class="card-meta">
+                <h5 style="font-size: 1rem;">${song.title}</h5>
+                <p style="font-size: 0.8rem;">${song.artist}</p>
+                ${isInPlaylist ? '<span style="font-size: 0.7rem; color: var(--hub-accent); font-weight: 700;">Ya está en la playlist</span>' : ''}
+            </div>
+            <div style="margin-top: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+                <input type="checkbox" class="multi-song-checkbox" data-id="${song.id}" ${isInPlaylist ? 'disabled' : ''} style="width: 20px; height: 20px; accent-color: var(--hub-accent);">
+                <span style="font-size: 0.8rem;">${isInPlaylist ? 'En lista' : 'Seleccionar'}</span>
+            </div>
+        `;
+
+        if (!isInPlaylist) {
+            card.onclick = (e) => {
+                if (e.target.tagName !== 'INPUT') {
+                    const cb = card.querySelector('.multi-song-checkbox');
+                    cb.checked = !cb.checked;
+                    if (cb.checked) multiSelectedSongs.add(song.id); else multiSelectedSongs.delete(song.id);
+                }
+            };
+            card.querySelector('.multi-song-checkbox').onchange = (e) => {
+                if (e.target.checked) multiSelectedSongs.add(song.id); else multiSelectedSongs.delete(song.id);
+            };
+        }
+        list.appendChild(card);
+    });
+
+    document.getElementById('btn-multi-cancel').onclick = () => modal.style.display = 'none';
+    document.getElementById('btn-multi-select-all').onclick = () => {
+        const checkboxes = document.querySelectorAll('.multi-song-checkbox:not(:disabled)');
+        checkboxes.forEach(cb => {
+            cb.checked = true;
+            multiSelectedSongs.add(parseInt(cb.getAttribute('data-id')));
+        });
+    };
+    document.getElementById('btn-multi-deselect-all').onclick = () => {
+        const checkboxes = document.querySelectorAll('.multi-song-checkbox');
+        checkboxes.forEach(cb => cb.checked = false);
+        multiSelectedSongs.clear();
+    };
+    document.getElementById('btn-multi-confirm').onclick = saveMultiSongs;
+}
+
+async function saveMultiSongs() {
+    if (multiSelectedSongs.size === 0) {
+        document.getElementById('multi-add-modal').style.display = 'none';
+        return;
+    }
+
+    const btn = document.getElementById('btn-multi-confirm');
+    btn.disabled = true;
+    btn.textContent = 'Añadiendo...';
+
+    const { data: currentSongs } = await window.supabaseClient
+        .from('playlist_songs')
+        .select('id')
+        .eq('playlist_id', activePlaylistId);
+
+    let startPos = currentSongs ? currentSongs.length : 0;
+    const toInsert = Array.from(multiSelectedSongs).map((songId, index) => ({
+        playlist_id: activePlaylistId,
+        song_id: songId,
+        position: startPos + index
+    }));
+
+    const { error } = await window.supabaseClient
+        .from('playlist_songs')
+        .insert(toInsert);
+
+    btn.disabled = false;
+    btn.textContent = 'Añadir Seleccionadas';
+
+    if (error) {
+        await window.customAlert('Error al añadir canciones: ' + error.message);
+    } else {
+        document.getElementById('multi-add-modal').style.display = 'none';
+        loadPlaylistSongs(activePlaylistId, document.getElementById('current-view-title').textContent);
     }
 }
