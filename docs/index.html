@@ -56,7 +56,10 @@
         <main class="hub-primary">
             <div class="hub-header">
                 <h2 id="current-view-title">Biblioteca Global</h2>
-                <button id="toggle-sort-btn" class="circle-btn" title="Activar Ordenar" style="margin-left: 1rem;"><i class="fas fa-sort"></i></button>
+                <div style="display: flex; gap: 0.5rem; align-items: center; margin-left: 1rem;">
+                    <button id="btn-open-multi-add" class="circle-btn" title="Añadir canciones" style="display: none;"><i class="fas fa-plus"></i></button>
+                    <button id="toggle-sort-btn" class="circle-btn" title="Activar Ordenar"><i class="fas fa-sort"></i></button>
+                </div>
             </div>
 
             <div class="song-grid-container">
@@ -99,6 +102,26 @@
             <div class="volume-container">
                 <i class="fas fa-volume-up" id="volume-icon"></i>
                 <input type="range" id="volume-bar" class="volume-slider" value="80" min="0" max="100">
+            </div>
+        </div>
+    </div>
+
+    <div id="multi-add-modal" class="modal">
+        <div class="modal-card" style="width: 80%; max-width: 800px; max-height: 85vh; overflow-y: auto;">
+            <h3 id="multi-add-title">Añadir a Playlist</h3>
+            <p style="margin-bottom: 1rem;">Selecciona las canciones que deseas añadir:</p>
+
+            <div style="display: flex; gap: 1rem; margin-bottom: 1.5rem; justify-content: center;">
+                <button id="btn-multi-select-all" class="nav-btn" style="font-size: 0.8rem; padding: 0.5rem 1rem;">Seleccionar Todas</button>
+                <button id="btn-multi-deselect-all" class="nav-btn" style="font-size: 0.8rem; padding: 0.5rem 1rem; background: var(--hub-surface-light);">Deseleccionar Todas</button>
+            </div>
+
+            <div id="multi-add-list" class="mosaic-grid" style="grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); text-align: left; margin-bottom: 2rem;">
+                <!-- Dinámico -->
+            </div>
+            <div class="hub-modal-actions">
+                <button id="btn-multi-cancel" class="hub-btn secondary">Cancelar</button>
+                <button id="btn-multi-confirm" class="hub-btn primary">Añadir Seleccionadas</button>
             </div>
         </div>
     </div>

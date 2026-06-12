@@ -741,3 +741,27 @@ body.hub-layout {
 .toast-success i { color: #10b981; }
 .toast-error i { color: #ef4444; }
 .toast-info i { color: var(--hub-accent); }
+
+/* Multi-select and State Styles */
+.song-card.owned, .song-card.in-playlist {
+    opacity: 0.5;
+    cursor: default;
+}
+
+.song-card.owned .card-meta, .song-card.in-playlist .card-meta {
+    pointer-events: none;
+}
+
+.multi-song-checkbox:disabled {
+    cursor: not-allowed;
+}
+
+#multi-add-list .song-card:hover:not([disabled]) {
+    transform: translateY(-4px);
+    border-color: var(--hub-accent);
+}
+
+#admin-library-list .song-card:hover:not([disabled]) {
+    transform: translateY(-4px);
+    border-color: var(--hub-accent);
+}
