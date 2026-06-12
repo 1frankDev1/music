@@ -744,24 +744,81 @@ body.hub-layout {
 
 /* Multi-select and State Styles */
 .song-card.owned, .song-card.in-playlist {
-    opacity: 0.5;
-    cursor: default;
+    opacity: 0.65;
 }
 
-.song-card.owned .card-meta, .song-card.in-playlist .card-meta {
-    pointer-events: none;
+.song-card.selected {
+    border: 2px solid var(--hub-accent) !important;
+    background: rgba(99, 102, 241, 0.1) !important;
+    box-shadow: 0 0 20px rgba(99, 102, 241, 0.4) !important;
 }
 
-.multi-song-checkbox:disabled {
-    cursor: not-allowed;
+.selection-enabled .song-card:hover {
+    transform: scale(1.02);
 }
 
-#multi-add-list .song-card:hover:not([disabled]) {
+.selection-action-bar {
+    position: fixed;
+    bottom: 120px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--hub-surface);
+    padding: 1rem 2rem;
+    border-radius: 50px;
+    border: 1px solid var(--hub-accent);
+    box-shadow: 0 15px 35px rgba(0,0,0,0.6);
+    display: flex;
+    align-items: center;
+    gap: 2rem;
+    z-index: 2500;
+    animation: barSlideUp 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes barSlideUp {
+    from { transform: translate(-50%, 100px); opacity: 0; }
+    to { transform: translate(-50%, 0); opacity: 1; }
+}
+
+#multi-add-list .song-card:hover:not(.in-playlist),
+#admin-library-list .song-card:hover:not(.owned) {
     transform: translateY(-4px);
     border-color: var(--hub-accent);
+    background: var(--hub-surface-light);
 }
 
-#admin-library-list .song-card:hover:not([disabled]) {
-    transform: translateY(-4px);
-    border-color: var(--hub-accent);
+/* Tabs */
+.tab-group {
+    background: var(--hub-surface-light);
+    padding: 4px;
+    border-radius: 12px;
+    display: inline-flex;
+}
+
+.tab-btn {
+    border: none;
+    background: none;
+    color: var(--hub-text-muted);
+    padding: 0.6rem 1.5rem;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: var(--transition);
+}
+
+.tab-btn:hover {
+    color: white;
+}
+
+.tab-btn.active {
+    background: var(--hub-accent) !important;
+    color: white !important;
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+}
+
+.song-checkbox, .multi-song-checkbox {
+    width: 22px;
+    height: 22px;
+    accent-color: var(--hub-accent);
+    cursor: pointer;
+    border-radius: 4px;
 }

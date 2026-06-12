@@ -42,9 +42,15 @@
             <h3>Librería del Administrador</h3>
             <p style="margin-bottom: 1rem;">Selecciona las canciones que quieres pasar a este usuario:</p>
 
-            <div style="display: flex; gap: 1rem; margin-bottom: 1.5rem; justify-content: center;">
-                <button id="btn-select-new" class="nav-btn" style="font-size: 0.8rem; padding: 0.5rem 1rem;">Seleccionar Nuevas</button>
-                <button id="btn-deselect-all" class="nav-btn" style="font-size: 0.8rem; padding: 0.5rem 1rem; background: var(--hub-surface-light);">Deseleccionar Todas</button>
+            <div style="display: flex; flex-direction: column; gap: 1rem; margin-bottom: 2rem; align-items: center;">
+                <div class="tab-group" style="display: flex; background: var(--hub-surface-light); padding: 4px; border-radius: 12px; gap: 4px;">
+                    <button id="tab-all" class="tab-btn active" style="border: none; background: none; color: white; padding: 0.5rem 1.5rem; border-radius: 8px; cursor: pointer; font-weight: 600; transition: var(--transition);">Todas</button>
+                    <button id="tab-new" class="tab-btn" style="border: none; background: none; color: var(--hub-text-muted); padding: 0.5rem 1.5rem; border-radius: 8px; cursor: pointer; font-weight: 600; transition: var(--transition);">Nuevas</button>
+                </div>
+                <div style="display: flex; gap: 1rem;">
+                    <button id="btn-select-all-visible" class="nav-btn" style="font-size: 0.8rem; padding: 0.5rem 1rem; border-color: var(--hub-accent);">Seleccionar Todo</button>
+                    <button id="btn-deselect-all" class="nav-btn" style="font-size: 0.8rem; padding: 0.5rem 1rem; background: var(--hub-surface-light);">Deseleccionar</button>
+                </div>
             </div>
 
             <div id="admin-library-list" class="mosaic-grid" style="grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); text-align: left; margin-bottom: 2rem;">
@@ -89,10 +95,14 @@
         const btnImportAdmin = document.getElementById('btn-import-admin');
         const btnCloseLibrary = document.getElementById('close-library');
         const btnImportSelected = document.getElementById('import-selected');
-        const btnSelectNew = document.getElementById('btn-select-new');
+        const btnSelectAllVisible = document.getElementById('btn-select-all-visible');
         const btnDeselectAll = document.getElementById('btn-deselect-all');
+        const tabAll = document.getElementById('tab-all');
+        const tabNew = document.getElementById('tab-new');
+
         let selectedSongs = new Set();
         let adminLibraryData = [];
+        let currentFilter = 'all'; // 'all' or 'new'
 
         btnImportAdmin.onclick = () => {
             libraryModal.style.display = 'flex';
@@ -103,13 +113,37 @@
             libraryModal.style.display = 'none';
         };
 
-        btnSelectNew.onclick = () => {
+        tabAll.onclick = () => {
+            currentFilter = 'all';
+            tabAll.classList.add('active');
+            tabNew.classList.remove('active');
+            tabAll.style.background = 'var(--hub-accent)';
+            tabAll.style.color = 'white';
+            tabNew.style.background = 'none';
+            tabNew.style.color = 'var(--hub-text-muted)';
+            renderAdminLibraryList();
+        };
+
+        tabNew.onclick = () => {
+            currentFilter = 'new';
+            tabNew.classList.add('active');
+            tabAll.classList.remove('active');
+            tabNew.style.background = 'var(--hub-accent)';
+            tabNew.style.color = 'white';
+            tabAll.style.background = 'none';
+            tabAll.style.color = 'var(--hub-text-muted)';
+            renderAdminLibraryList();
+        };
+
+        btnSelectAllVisible.onclick = () => {
             const checkboxes = document.querySelectorAll('.song-checkbox:not(:disabled)');
             checkboxes.forEach(cb => {
-                cb.checked = true;
                 const id = parseInt(cb.getAttribute('data-id'));
                 const song = adminLibraryData.find(s => s.id === id);
-                if (song) selectedSongs.add(song);
+                if (song) {
+                    cb.checked = true;
+                    selectedSongs.add(song);
+                }
             });
         };
 
@@ -127,42 +161,71 @@
             adminLibraryData = adminSongs;
             const userAudioUrls = new Set(userSongs ? userSongs.map(s => s.audio_url) : []);
 
+            adminLibraryData.forEach(song => {
+                song.isOwned = userAudioUrls.has(song.audio_url);
+            });
+
+            tabAll.click(); // Default to all
+        }
+
+        function renderAdminLibraryList() {
             const list = document.getElementById('admin-library-list');
             list.innerHTML = '';
-            selectedSongs.clear();
 
-            adminSongs.forEach(song => {
-                const hasSong = userAudioUrls.has(song.audio_url);
+            const filteredSongs = currentFilter === 'all'
+                ? adminLibraryData
+                : adminLibraryData.filter(s => !s.isOwned);
+
+            filteredSongs.forEach(song => {
                 const card = document.createElement('div');
-                card.className = 'song-card' + (hasSong ? ' owned' : '');
-                card.style.padding = '1rem';
+                card.className = 'song-card' + (song.isOwned ? ' owned' : '');
+                card.style.display = 'flex';
+                card.style.flexDirection = 'column';
+                card.style.justifyContent = 'space-between';
+                card.style.padding = '1.25rem';
 
                 card.innerHTML = `
-                    <div class="card-meta">
-                        <h5 style="font-size: 1rem;">${song.title}</h5>
-                        <p style="font-size: 0.8rem;">${song.artist}</p>
-                        ${hasSong ? '<span style="font-size: 0.7rem; color: var(--hub-accent); font-weight: 700;">Ya la tiene</span>' : ''}
+                    <div class="card-meta" style="flex: 1;">
+                        <h5 style="font-size: 1rem; margin-bottom: 0.25rem;">${song.title}</h5>
+                        <p style="font-size: 0.8rem; margin-bottom: 0.5rem;">${song.artist}</p>
+                        ${song.isOwned ? '<span style="font-size: 0.7rem; color: var(--hub-accent); font-weight: 700; display: block;">Ya la tiene</span>' : ''}
                     </div>
-                    <div style="margin-top: 1rem; display: flex; align-items: center; gap: 0.5rem;">
-                        <input type="checkbox" class="song-checkbox" data-id="${song.id}" ${hasSong ? 'disabled' : ''} style="width: 20px; height: 20px; accent-color: var(--hub-accent);">
-                        <span style="font-size: 0.8rem;">${hasSong ? 'Poseída' : 'Seleccionar'}</span>
+                    <div style="margin-top: 1rem; display: flex; align-items: center; justify-content: space-between; border-top: 1px solid var(--hub-surface-light); padding-top: 0.75rem;">
+                        <span style="font-size: 0.8rem; color: var(--hub-text-muted);">${song.isOwned ? 'Poseída' : 'Transferir'}</span>
+                        <input type="checkbox" class="song-checkbox" data-id="${song.id}"
+                            ${song.isOwned ? 'disabled' : ''}
+                            ${Array.from(selectedSongs).some(s => s.id === song.id) ? 'checked' : ''}
+                            style="width: 22px; height: 22px; accent-color: var(--hub-accent); cursor: pointer;">
                     </div>
                 `;
 
-                if (!hasSong) {
+                if (!song.isOwned) {
                     card.onclick = (e) => {
                         if (e.target.tagName !== 'INPUT') {
                             const cb = card.querySelector('.song-checkbox');
                             cb.checked = !cb.checked;
-                            if (cb.checked) selectedSongs.add(song); else selectedSongs.delete(song);
+                            toggleSongSelection(song, cb.checked);
                         }
                     };
                     card.querySelector('.song-checkbox').onchange = (e) => {
-                        if (e.target.checked) selectedSongs.add(song); else selectedSongs.delete(song);
+                        toggleSongSelection(song, e.target.checked);
                     };
                 }
                 list.appendChild(card);
             });
+        }
+
+        function toggleSongSelection(song, isSelected) {
+            if (isSelected) selectedSongs.add(song);
+            else {
+                // Find and remove matching object
+                for (let s of selectedSongs) {
+                    if (s.id === song.id) {
+                        selectedSongs.delete(s);
+                        break;
+                    }
+                }
+            }
         }
 
         btnImportSelected.onclick = async () => {

@@ -195,8 +195,12 @@ function renderSongList(songsToRender) {
                 return;
             }
 
-            loadSong(index);
-            playSong();
+            if (typeof handleSongClick === 'function') {
+                handleSongClick(song, index, div);
+            } else {
+                loadSong(index);
+                playSong();
+            }
         };
         list.appendChild(div);
     });
