@@ -57,8 +57,17 @@
             <div class="hub-header">
                 <h2 id="current-view-title">Biblioteca Global</h2>
                 <div style="display: flex; gap: 0.5rem; align-items: center; margin-left: 1rem;">
+                    <button id="btn-selection-mode" class="circle-btn" title="Modo Selección"><i class="fas fa-check-double"></i></button>
                     <button id="btn-open-multi-add" class="circle-btn" title="Añadir canciones" style="display: none;"><i class="fas fa-plus"></i></button>
                     <button id="toggle-sort-btn" class="circle-btn" title="Activar Ordenar"><i class="fas fa-sort"></i></button>
+                </div>
+            </div>
+
+            <div id="selection-bar" class="selection-action-bar" style="display: none;">
+                <span id="selection-count">0 seleccionadas</span>
+                <div style="display: flex; gap: 1rem;">
+                    <button id="btn-add-selected-to-pl" class="hub-btn primary" style="padding: 0.5rem 1rem; font-size: 0.9rem;">Añadir a Playlist</button>
+                    <button id="btn-cancel-selection" class="hub-btn secondary" style="padding: 0.5rem 1rem; font-size: 0.9rem;">Cancelar</button>
                 </div>
             </div>
 

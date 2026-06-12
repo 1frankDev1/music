@@ -9,6 +9,8 @@ const songListUI = document.getElementById('song-list-ui');
 let currentPlaylists = [];
 let activePlaylistId = null;
 let isSortMode = false;
+let isSelectionMode = false;
+let globalSelectedSongs = new Set();
 let sortableInstance;
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -40,6 +42,21 @@ document.addEventListener('DOMContentLoaded', () => {
         multiAddBtn.onclick = openMultiAddModal;
     }
 
+    const selectionModeBtn = document.getElementById('btn-selection-mode');
+    if (selectionModeBtn) {
+        selectionModeBtn.onclick = toggleSelectionMode;
+    }
+
+    const cancelSelectionBtn = document.getElementById('btn-cancel-selection');
+    if (cancelSelectionBtn) {
+        cancelSelectionBtn.onclick = () => toggleSelectionMode(false);
+    }
+
+    const addSelectedBtn = document.getElementById('btn-add-selected-to-pl');
+    if (addSelectedBtn) {
+        addSelectedBtn.onclick = openBulkAddToPlaylist;
+    }
+
     // Mobile Drawer Logic
     const drawer = document.getElementById('mobile-drawer');
     const toggleBtn = document.getElementById('mobile-playlist-toggle');
@@ -60,6 +77,7 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 function toggleSortMode() {
+    if (isSelectionMode) toggleSelectionMode(false);
     isSortMode = !isSortMode;
     const btn = document.getElementById('toggle-sort-btn');
 
@@ -76,6 +94,127 @@ function toggleSortMode() {
         btn.innerHTML = '<i class="fas fa-sort"></i>';
         songListUI.classList.remove('sort-enabled');
     }
+}
+
+function toggleSelectionMode(forceValue) {
+    if (isSortMode) toggleSortMode();
+    isSelectionMode = typeof forceValue === 'boolean' ? forceValue : !isSelectionMode;
+
+    const btn = document.getElementById('btn-selection-mode');
+    const bar = document.getElementById('selection-bar');
+
+    if (isSelectionMode) {
+        btn.classList.add('active-sort'); // Reuse style
+        bar.style.display = 'flex';
+        songListUI.classList.add('selection-enabled');
+    } else {
+        btn.classList.remove('active-sort');
+        bar.style.display = 'none';
+        songListUI.classList.remove('selection-enabled');
+        globalSelectedSongs.clear();
+        document.querySelectorAll('.song-card.selected').forEach(c => c.classList.remove('selected'));
+        updateSelectionCount();
+    }
+}
+
+function updateSelectionCount() {
+    const el = document.getElementById('selection-count');
+    if (el) el.textContent = `${globalSelectedSongs.size} seleccionadas`;
+}
+
+function handleSongClick(song, index, card) {
+    if (isSelectionMode) {
+        if (globalSelectedSongs.has(song.id)) {
+            globalSelectedSongs.delete(song.id);
+            card.classList.remove('selected');
+        } else {
+            globalSelectedSongs.add(song.id);
+            card.classList.add('selected');
+        }
+        updateSelectionCount();
+    } else {
+        if (typeof loadSong === 'function') {
+            loadSong(index);
+            if (typeof playSong === 'function') playSong();
+        }
+    }
+}
+
+async function openBulkAddToPlaylist() {
+    if (globalSelectedSongs.size === 0) return await window.customAlert('Selecciona al menos una canción');
+
+    const modal = document.getElementById('add-to-playlist-modal');
+    const select = document.getElementById('playlist-select');
+    const cancelBtn = document.getElementById('cancel-add-song');
+    const confirmBtn = document.getElementById('confirm-add-song');
+
+    select.innerHTML = '';
+    currentPlaylists.forEach(pl => {
+        const opt = document.createElement('option');
+        opt.value = pl.id;
+        opt.textContent = pl.name;
+        select.appendChild(opt);
+    });
+
+    if (currentPlaylists.length === 0) {
+        await window.customAlert('Crea una playlist primero');
+        return;
+    }
+
+    modal.style.display = 'flex';
+    cancelBtn.onclick = () => modal.style.display = 'none';
+
+    confirmBtn.onclick = async () => {
+        const plId = select.value;
+        confirmBtn.disabled = true;
+        confirmBtn.textContent = 'Añadiendo...';
+
+        const { data: currentSongs } = await window.supabaseClient
+            .from('playlist_songs')
+            .select('song_id')
+            .eq('playlist_id', plId);
+
+        const existingIds = new Set(currentSongs ? currentSongs.map(s => s.song_id) : []);
+        const toAdd = Array.from(globalSelectedSongs).filter(id => !existingIds.has(id));
+
+        if (toAdd.length === 0) {
+            await window.customAlert('Las canciones seleccionadas ya están en esta playlist');
+            confirmBtn.disabled = false;
+            confirmBtn.textContent = 'Añadir';
+            return;
+        }
+
+        const { data: countData } = await window.supabaseClient
+            .from('playlist_songs')
+            .select('id', { count: 'exact' })
+            .eq('playlist_id', plId);
+
+        let startPos = countData ? countData.length : 0;
+
+        const inserts = toAdd.map((songId, i) => ({
+            playlist_id: plId,
+            song_id: songId,
+            position: startPos + i
+        }));
+
+        const { error } = await window.supabaseClient
+            .from('playlist_songs')
+            .insert(inserts);
+
+        confirmBtn.disabled = false;
+        confirmBtn.textContent = 'Añadir';
+        modal.style.display = 'none';
+
+        if (error) {
+            await window.customAlert('Error: ' + error.message);
+        } else {
+            if (typeof showToast === 'function') showToast(`Añadidas ${toAdd.length} canciones`, 'success');
+            toggleSelectionMode(false);
+            if (activePlaylistId == plId) {
+                loadPlaylistSongs(plId, document.getElementById('current-view-title').textContent);
+            }
+        }
+    };
 }
 
 async function loadPlaylists() {
@@ -315,17 +454,22 @@ async function openMultiAddModal() {
         const isInPlaylist = existingIds.has(song.id);
         const card = document.createElement('div');
         card.className = 'song-card' + (isInPlaylist ? ' in-playlist' : '');
-        card.style.padding = '1rem';
+        card.style.display = 'flex';
+        card.style.flexDirection = 'column';
+        card.style.justifyContent = 'space-between';
+        card.style.padding = '1.25rem';
 
         card.innerHTML = `
-            <div class="card-meta">
-                <h5 style="font-size: 1rem;">${song.title}</h5>
-                <p style="font-size: 0.8rem;">${song.artist}</p>
-                ${isInPlaylist ? '<span style="font-size: 0.7rem; color: var(--hub-accent); font-weight: 700;">Ya está en la playlist</span>' : ''}
+            <div class="card-meta" style="flex: 1;">
+                <h5 style="font-size: 1rem; margin-bottom: 0.25rem;">${song.title}</h5>
+                <p style="font-size: 0.8rem; margin-bottom: 0.5rem;">${song.artist}</p>
+                ${isInPlaylist ? '<span style="font-size: 0.7rem; color: var(--hub-accent); font-weight: 700; display: block;">Ya está en la playlist</span>' : ''}
             </div>
-            <div style="margin-top: 1rem; display: flex; align-items: center; gap: 0.5rem;">
-                <input type="checkbox" class="multi-song-checkbox" data-id="${song.id}" ${isInPlaylist ? 'disabled' : ''} style="width: 20px; height: 20px; accent-color: var(--hub-accent);">
-                <span style="font-size: 0.8rem;">${isInPlaylist ? 'En lista' : 'Seleccionar'}</span>
+            <div style="margin-top: 1rem; display: flex; align-items: center; justify-content: space-between; border-top: 1px solid var(--hub-surface-light); padding-top: 0.75rem;">
+                <span style="font-size: 0.8rem; color: var(--hub-text-muted);">${isInPlaylist ? 'En lista' : 'Añadir'}</span>
+                <input type="checkbox" class="multi-song-checkbox" data-id="${song.id}"
+                    ${isInPlaylist ? 'disabled' : ''}
+                    style="width: 22px; height: 22px; accent-color: var(--hub-accent); cursor: pointer;">
             </div>
         `;
 
