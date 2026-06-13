@@ -105,10 +105,12 @@ function toggleSelectionMode(forceValue) {
 
     if (isSelectionMode) {
         btn.classList.add('active-sort'); // Reuse style
+        btn.innerHTML = '<i class="fas fa-times"></i>';
         bar.style.display = 'flex';
         songListUI.classList.add('selection-enabled');
     } else {
         btn.classList.remove('active-sort');
+        btn.innerHTML = '<i class="fas fa-check-double"></i>';
         bar.style.display = 'none';
         songListUI.classList.remove('selection-enabled');
         globalSelectedSongs.clear();
@@ -450,43 +452,42 @@ async function openMultiAddModal() {
     list.innerHTML = '';
     multiSelectedSongs.clear();
 
+
     songs.forEach(song => {
         const isInPlaylist = existingIds.has(song.id);
-        const card = document.createElement('div');
-        card.className = 'song-card' + (isInPlaylist ? ' in-playlist' : '');
-        card.style.display = 'flex';
-        card.style.flexDirection = 'column';
-        card.style.justifyContent = 'space-between';
-        card.style.padding = '1.25rem';
+        if (isInPlaylist) return; // ONLY SHOW SONGS NOT IN PLAYLIST
 
-        card.innerHTML = `
-            <div class="card-meta" style="flex: 1;">
-                <h5 style="font-size: 1rem; margin-bottom: 0.25rem;">${song.title}</h5>
-                <p style="font-size: 0.8rem; margin-bottom: 0.5rem;">${song.artist}</p>
-                ${isInPlaylist ? '<span style="font-size: 0.7rem; color: var(--hub-accent); font-weight: 700; display: block;">Ya está en la playlist</span>' : ''}
+        const item = document.createElement('div');
+        item.className = 'admin-list-item';
+
+        item.innerHTML = `
+            <div class="item-info">
+                <div class="item-titles">
+                    <h5>${song.title}</h5>
+                    <p>${song.artist}</p>
+                </div>
             </div>
-            <div style="margin-top: 1rem; display: flex; align-items: center; justify-content: space-between; border-top: 1px solid var(--hub-surface-light); padding-top: 0.75rem;">
-                <span style="font-size: 0.8rem; color: var(--hub-text-muted);">${isInPlaylist ? 'En lista' : 'Añadir'}</span>
-                <input type="checkbox" class="multi-song-checkbox" data-id="${song.id}"
-                    ${isInPlaylist ? 'disabled' : ''}
-                    style="width: 22px; height: 22px; accent-color: var(--hub-accent); cursor: pointer;">
+            <div class="item-action">
+                <input type="checkbox" class="multi-song-checkbox" data-id="${song.id}">
             </div>
         `;
 
-        if (!isInPlaylist) {
-            card.onclick = (e) => {
-                if (e.target.tagName !== 'INPUT') {
-                    const cb = card.querySelector('.multi-song-checkbox');
-                    cb.checked = !cb.checked;
-                    if (cb.checked) multiSelectedSongs.add(song.id); else multiSelectedSongs.delete(song.id);
-                }
-            };
-            card.querySelector('.multi-song-checkbox').onchange = (e) => {
-                if (e.target.checked) multiSelectedSongs.add(song.id); else multiSelectedSongs.delete(song.id);
-            };
-        }
-        list.appendChild(card);
+        item.onclick = (e) => {
+            if (e.target.tagName !== 'INPUT') {
+                const cb = item.querySelector('.multi-song-checkbox');
+                cb.checked = !cb.checked;
+                if (cb.checked) multiSelectedSongs.add(song.id); else multiSelectedSongs.delete(song.id);
+            }
+        };
+        item.querySelector('.multi-song-checkbox').onchange = (e) => {
+            if (e.target.checked) multiSelectedSongs.add(song.id); else multiSelectedSongs.delete(song.id);
+        };
+        list.appendChild(item);
     });
+
+    if (list.children.length === 0) {
+        list.innerHTML = `<p style="text-align: center; color: var(--hub-text-muted); padding: 3rem;">Todas tus canciones ya están en esta playlist.</p>`;
+    }
 
     document.getElementById('btn-multi-cancel').onclick = () => modal.style.display = 'none';
     document.getElementById('btn-multi-select-all').onclick = () => {
