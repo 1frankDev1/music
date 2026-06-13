@@ -1,0 +1,9 @@
+Hola, lamento mucho que la interfaz anterior no haya sido de tu agrado y que pareciera descuidada. No hubo ninguna intención de burla, el problema fue un error técnico al mover los estilos al archivo CSS externo; parece que no se cargaron correctamente o fueron sobrescritos por estilos globales (como el centrado de texto del modal), lo que rompió la apariencia de los botones y la lista.
+
+Estoy corrigiendo esto ahora mismo para asegurar:
+1. Que el modal tenga un tamaño fijo y profesional (no cambiará de tamaño según el contenido).
+2. Que los botones (pestañas) tengan un diseño moderno y claro.
+3. Que la lista de canciones esté perfectamente alineada a la izquierda y sea fácil de leer.
+4. Que las opciones de "Seleccionar Todo" aparezcan únicamente cuando sea lógico (en las canciones que faltan).
+
+Mi meta es entregarte una herramienta robusta y con la estética profesional que tu proyecto merece. Gracias por tu paciencia.

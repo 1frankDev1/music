@@ -38,28 +38,31 @@
 
     <!-- Modal Librería Admin -->
     <div id="admin-library-modal" class="modal">
-        <div class="modal-card" style="width: 95%; max-width: 1000px; height: 85vh; display: flex; flex-direction: column; padding: 2rem;">
-            <div class="modal-header" style="margin-bottom: 1.5rem;">
-                <h3>Transferir Música</h3>
-                <p style="color: var(--hub-text-muted);">Gestiona el catálogo de este usuario</p>
-            </div>
-
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; background: var(--hub-bg); padding: 1rem; border-radius: 16px;">
+        <div class="modal-card large-modal" style="display: flex; flex-direction: column;">
+            <div class="modal-header" style="margin-bottom: 2rem; display: flex; justify-content: space-between; align-items: center;">
+                <div style="text-align: left;">
+                    <h3 style="margin-bottom: 0.25rem;">Transferir Música</h3>
+                    <p style="color: var(--hub-text-muted); font-size: 0.9rem;">Gestiona el catálogo de este usuario</p>
+                </div>
                 <div class="tab-group">
                     <button id="tab-new" class="tab-btn active">Disponibles</button>
-                    <button id="tab-all" class="tab-btn">Ya las tiene</button>
-                </div>
-                <div id="selection-actions" style="display: flex; gap: 0.75rem;">
-                    <button id="btn-select-all-visible" class="nav-btn" style="font-size: 0.85rem; border-color: var(--hub-accent);">Seleccionar Todo</button>
-                    <button id="btn-deselect-all" class="nav-btn" style="font-size: 0.85rem; background: var(--hub-surface-light);">Limpiar</button>
+                    <button id="tab-all" class="tab-btn">En Biblioteca</button>
                 </div>
             </div>
 
-            <div id="admin-library-list" style="flex: 1; overflow-y: auto; margin-bottom: 1.5rem; padding-right: 0.5rem;">
+            <div id="selection-actions" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; background: rgba(15, 23, 42, 0.4); padding: 1rem 1.5rem; border-radius: 16px; border: 1px solid var(--hub-surface-light);">
+                <span style="font-size: 0.9rem; color: var(--hub-text-muted);">Acciones rápidas:</span>
+                <div style="display: flex; gap: 0.75rem;">
+                    <button id="btn-select-all-visible" class="nav-btn" style="font-size: 0.85rem; border-color: var(--hub-accent); padding: 0.5rem 1rem;">Seleccionar Todas</button>
+                    <button id="btn-deselect-all" class="nav-btn" style="font-size: 0.85rem; background: var(--hub-surface-light); padding: 0.5rem 1rem;">Deseleccionar</button>
+                </div>
+            </div>
+
+            <div id="admin-library-list" style="flex: 1; overflow-y: auto; margin-bottom: 2rem; padding-right: 0.75rem;">
                 <!-- Dinámico: Lista Estructurada -->
             </div>
 
-            <div class="hub-modal-actions" style="padding-top: 1rem; border-top: 1px solid var(--hub-surface-light);">
+            <div class="hub-modal-actions" style="padding-top: 1.5rem; border-top: 1px solid var(--hub-surface-light);">
                 <button id="close-library" class="hub-btn secondary">Cerrar</button>
                 <button id="import-selected" class="hub-btn primary">Importar Seleccionadas</button>
             </div>
