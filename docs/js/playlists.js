@@ -104,13 +104,13 @@ function toggleSelectionMode(forceValue) {
     const bar = document.getElementById('selection-bar');
 
     if (isSelectionMode) {
-        btn.classList.add('active-sort'); // Reuse style
-        btn.innerHTML = '<i class="fas fa-times"></i>';
+        btn.classList.add('active-sort');
+        btn.innerHTML = '<i class="fas fa-times"></i> <span>Cancelar</span>';
         bar.style.display = 'flex';
         songListUI.classList.add('selection-enabled');
     } else {
         btn.classList.remove('active-sort');
-        btn.innerHTML = '<i class="fas fa-check-double"></i>';
+        btn.innerHTML = '<i class="fas fa-list-check"></i> <span>Seleccionar</span>';
         bar.style.display = 'none';
         songListUI.classList.remove('selection-enabled');
         globalSelectedSongs.clear();
