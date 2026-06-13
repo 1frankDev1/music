@@ -749,8 +749,26 @@ body.hub-layout {
 
 .song-card.selected {
     border: 2px solid var(--hub-accent) !important;
-    background: rgba(99, 102, 241, 0.1) !important;
-    box-shadow: 0 0 20px rgba(99, 102, 241, 0.4) !important;
+    background: rgba(99, 102, 241, 0.15) !important;
+    box-shadow: 0 0 25px rgba(99, 102, 241, 0.5) !important;
+    transform: scale(1.02);
+}
+
+.selection-enabled .song-card::after {
+    content: '\f058';
+    font-family: 'Font Awesome 6 Free';
+    font-weight: 900;
+    position: absolute;
+    top: 1rem;
+    left: 1rem;
+    font-size: 1.5rem;
+    color: var(--hub-accent);
+    opacity: 0;
+    transition: var(--transition);
+}
+
+.selection-enabled .song-card.selected::after {
+    opacity: 1;
 }
 
 .selection-enabled .song-card:hover {
@@ -821,4 +839,53 @@ body.hub-layout {
     accent-color: var(--hub-accent);
     cursor: pointer;
     border-radius: 4px;
+}
+
+/* Admin Modal Refined List */
+.admin-list-item {
+    background: var(--hub-surface);
+    border: 1px solid var(--hub-surface-light);
+    border-radius: 12px;
+    padding: 1rem 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 0.75rem;
+    transition: var(--transition);
+    cursor: pointer;
+}
+
+.admin-list-item:hover {
+    background: var(--hub-surface-light);
+    border-color: var(--hub-accent);
+}
+
+.admin-list-item.owned {
+    background: rgba(15, 23, 42, 0.4);
+    border-style: dashed;
+    cursor: default;
+}
+
+.item-info {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    flex: 1;
+}
+
+.item-titles h5 {
+    font-size: 1.05rem;
+    color: white;
+}
+
+.item-titles p {
+    font-size: 0.85rem;
+    color: var(--hub-text-muted);
+}
+
+.item-action {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
 }
