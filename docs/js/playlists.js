@@ -145,10 +145,15 @@ function handleSongClick(song, index, card) {
 async function openBulkAddToPlaylist() {
     if (globalSelectedSongs.size === 0) return await window.customAlert('Selecciona al menos una canción');
 
-    const modal = document.getElementById('add-to-playlist-modal');
-    const select = document.getElementById('playlist-select');
-    const cancelBtn = document.getElementById('cancel-add-song');
-    const confirmBtn = document.getElementById('confirm-add-song');
+    const modal = document.getElementById('bulk-add-to-playlist-modal');
+    const select = document.getElementById('bulk-playlist-select');
+    const cancelBtn = document.getElementById('btn-bulk-cancel');
+    const confirmBtn = document.getElementById('btn-bulk-confirm');
+
+    if (!modal || !select) {
+        // Fallback if modal is missing (should not happen with latest index.html)
+        return addSongToPlaylist(Array.from(globalSelectedSongs)[0]);
+    }
 
     select.innerHTML = '';
     currentPlaylists.forEach(pl => {
