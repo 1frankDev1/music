@@ -47,6 +47,7 @@
                 <div class="tab-group">
                     <button id="tab-new" class="tab-btn active">Disponibles</button>
                     <button id="tab-all" class="tab-btn">En Biblioteca</button>
+                    <button id="tab-playlists" class="tab-btn">Playlists</button>
                 </div>
             </div>
 
@@ -105,6 +106,7 @@
         const btnDeselectAll = document.getElementById('btn-deselect-all');
         const tabAll = document.getElementById('tab-all');
         const tabNew = document.getElementById('tab-new');
+        const tabPlaylists = document.getElementById('tab-playlists');
 
         let selectedSongs = new Set();
         let adminLibraryData = [];
@@ -123,7 +125,9 @@
             currentFilter = 'owned';
             tabAll.classList.add('active');
             tabNew.classList.remove('active');
+            tabPlaylists.classList.remove('active');
             document.getElementById('selection-actions').style.display = 'none';
+            btnImportSelected.style.display = 'none';
             renderAdminLibraryList();
         };
 
@@ -131,8 +135,20 @@
             currentFilter = 'new';
             tabNew.classList.add('active');
             tabAll.classList.remove('active');
+            tabPlaylists.classList.remove('active');
             document.getElementById('selection-actions').style.display = 'flex';
+            btnImportSelected.style.display = 'inline-flex';
             renderAdminLibraryList();
+        };
+
+        tabPlaylists.onclick = () => {
+            currentFilter = 'playlists';
+            tabPlaylists.classList.add('active');
+            tabAll.classList.remove('active');
+            tabNew.classList.remove('active');
+            document.getElementById('selection-actions').style.display = 'none';
+            btnImportSelected.style.display = 'none';
+            loadAdminPlaylists();
         };
 
         btnSelectAllVisible.onclick = () => {
@@ -214,6 +230,121 @@
                 }
                 list.appendChild(item);
             });
+        }
+
+        async function loadAdminPlaylists() {
+            const list = document.getElementById('admin-library-list');
+            list.innerHTML = '<p style="text-align: center; color: var(--hub-text-muted); padding: 3rem;">Cargando playlists...</p>';
+
+            const { data: playlists, error } = await window.supabaseClient
+                .from('playlists')
+                .select('*')
+                .eq('user_id', 1)
+                .order('name', { ascending: true });
+
+            if (error) {
+                list.innerHTML = `<p style="text-align: center; color: #ef4444; padding: 3rem;">Error: ${error.message}</p>`;
+                return;
+            }
+
+            if (playlists.length === 0) {
+                list.innerHTML = `<p style="text-align: center; color: var(--hub-text-muted); padding: 3rem;">El administrador no tiene playlists.</p>`;
+                return;
+            }
+
+            list.innerHTML = '';
+            playlists.forEach(pl => {
+                const item = document.createElement('div');
+                item.className = 'admin-list-item';
+                item.innerHTML = `
+                    <div class="item-info">
+                        <div class="item-titles">
+                            <h5>${pl.name}</h5>
+                            <p>Compartir esta playlist con el usuario</p>
+                        </div>
+                    </div>
+                    <div class="item-action">
+                        <button class="hub-btn primary btn-share-pl" style="padding: 0.5rem 1rem; font-size: 0.8rem;" data-id="${pl.id}" data-name="${pl.name.replace(/"/g, '&quot;')}">Compartir</button>
+                    </div>
+                `;
+                item.querySelector('.btn-share-pl').onclick = (e) => {
+                    e.stopPropagation();
+                    sharePlaylist(pl.id, pl.name, e.target);
+                };
+                list.appendChild(item);
+            });
+        }
+
+        async function sharePlaylist(playlistId, playlistName, btn) {
+            const confirmed = await window.customConfirm(`¿Compartir la playlist "${playlistName}" con este usuario?`);
+            if (!confirmed) return;
+
+            const originalText = btn.textContent;
+            btn.disabled = true;
+            btn.textContent = 'Compartiendo...';
+
+            try {
+                // 1. Obtener canciones de la playlist del admin
+                const { data: plSongs, error: plError } = await window.supabaseClient
+                    .from('playlist_songs')
+                    .select('songs(*), position')
+                    .eq('playlist_id', playlistId)
+                    .order('position', { ascending: true });
+
+                if (plError) throw plError;
+
+                // 2. Crear la nueva playlist para el usuario objetivo
+                const { data: newPl, error: newPlError } = await window.supabaseClient
+                    .from('playlists')
+                    .insert([{ name: playlistName, user_id: targetUserId }])
+                    .select()
+                    .single();
+
+                if (newPlError) throw newPlError;
+
+                // 3. Clonar las canciones (con is_global: false) y vincularlas
+                for (const item of plSongs) {
+                    const s = item.songs;
+                    // Insertar la canción para el usuario (si no la tiene ya con is_global: false)
+                    // Para simplificar y cumplir "que solo se queden en la playlist", creamos copias con is_global: false
+                    const { data: newSong, error: newSongError } = await window.supabaseClient
+                        .from('songs')
+                        .insert([{
+                            title: s.title,
+                            artist: s.artist,
+                            audio_url: s.audio_url,
+                            cover_url: s.cover_url,
+                            duration: s.duration,
+                            user_id: targetUserId,
+                            is_global: false
+                        }])
+                        .select()
+                        .single();
+
+                    if (newSongError) throw newSongError;
+
+                    // 4. Vincular a la nueva playlist
+                    const { error: linkError } = await window.supabaseClient
+                        .from('playlist_songs')
+                        .insert([{
+                            playlist_id: newPl.id,
+                            song_id: newSong.id,
+                            position: item.position
+                        }]);
+
+                    if (linkError) throw linkError;
+                }
+
+                await window.customAlert(`Playlist "${playlistName}" compartida con éxito.`);
+                libraryModal.style.display = 'none';
+                loadUserSongs();
+            } catch (err) {
+                console.error(err);
+                await window.customAlert('Error al compartir playlist: ' + err.message);
+            } finally {
+                btn.disabled = false;
+                btn.textContent = originalText;
+            }
         }
 
         function toggleSongSelection(song, isSelected) {

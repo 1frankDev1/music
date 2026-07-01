@@ -36,9 +36,52 @@ self.addEventListener('activate', event => {
 });
 
 self.addEventListener('fetch', event => {
+  const url = new URL(event.request.url);
+
+  // Cache First for Audio files - Basic strategy (ignoring Range requests for simplicity in this sandbox)
+  // In a real production app, one should use workbox-range-requests or handle 206 responses.
+  if (event.request.destination === 'audio' || url.pathname.endsWith('.mp3') || url.pathname.endsWith('.m4a') || url.pathname.endsWith('.wav')) {
+    event.respondWith(
+      caches.open('viking-audio-cache').then(cache => {
+        return cache.match(event.request).then(response => {
+          if (response) return response;
+          return fetch(event.request).then(fetchResponse => {
+            if (fetchResponse.status === 200) {
+              cache.put(event.request, fetchResponse.clone());
+            }
+            return fetchResponse;
+          });
+        });
+      })
+    );
+    return;
+  }
+
+  // Network First for Supabase API calls (so they work offline if already cached, but stay fresh)
+  if (url.hostname.includes('supabase.co')) {
+    event.respondWith(
+      caches.open('viking-api-cache').then(cache => {
+        return fetch(event.request).then(fetchResponse => {
+          cache.put(event.request, fetchResponse.clone());
+          return fetchResponse;
+        }).catch(() => {
+          return cache.match(event.request);
+        });
+      })
+    );
+    return;
+  }
+
+  // Stale-While-Revalidate for other assets
   event.respondWith(
-    caches.match(event.request).then(response => {
-      return response || fetch(event.request);
+    caches.match(event.request).then(cachedResponse => {
+      const fetchPromise = fetch(event.request).then(networkResponse => {
+        caches.open(CACHE_NAME).then(cache => {
+          cache.put(event.request, networkResponse.clone());
+        });
+        return networkResponse;
+      });
+      return cachedResponse || fetchPromise;
     })
   );
 });

@@ -17,6 +17,7 @@ CREATE TABLE IF NOT EXISTS songs (
     audio_url TEXT NOT NULL,
     cover_url TEXT,
     duration TEXT,
+    is_global BOOLEAN DEFAULT TRUE,
     user_id BIGINT REFERENCES users(id) ON DELETE CASCADE,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
