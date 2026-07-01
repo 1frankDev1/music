@@ -58,6 +58,23 @@ function loadSong(index) {
 
     audio.src = song.audio_url;
 
+    // Media Session API for background playback and lock screen controls
+    if ('mediaSession' in navigator) {
+        navigator.mediaSession.metadata = new MediaMetadata({
+            title: song.title,
+            artist: song.artist,
+            artwork: [
+                { src: song.cover_url || 'icon-192.png', sizes: '192x192', type: 'image/png' },
+                { src: song.cover_url || 'icon-512.png', sizes: '512x512', type: 'image/png' }
+            ]
+        });
+
+        navigator.mediaSession.setActionHandler('play', playSong);
+        navigator.mediaSession.setActionHandler('pause', pauseSong);
+        navigator.mediaSession.setActionHandler('previoustrack', prevSong);
+        navigator.mediaSession.setActionHandler('nexttrack', nextSong);
+    }
+
     // Update active class in UI
     document.querySelectorAll('.song-card').forEach((item, i) => {
         item.classList.toggle('active', i === index);
@@ -77,12 +94,18 @@ function playSong() {
     isPlaying = true;
     audio.play();
     playBtn.innerHTML = '<i class="fas fa-pause"></i>';
+    if ('mediaSession' in navigator) {
+        navigator.mediaSession.playbackState = 'playing';
+    }
 }
 
 function pauseSong() {
     isPlaying = false;
     audio.pause();
     playBtn.innerHTML = '<i class="fas fa-play"></i>';
+    if ('mediaSession' in navigator) {
+        navigator.mediaSession.playbackState = 'paused';
+    }
 }
 
 function nextSong() {
@@ -212,11 +235,12 @@ async function loadSongs() {
     const user = JSON.parse(localStorage.getItem('currentUser'));
     if (!user) return;
 
-    // Cargar solo canciones propias (el admin ya las habrá pasado si es necesario)
+    // Cargar canciones propias que sean globales
     const { data, error } = await window.supabaseClient
         .from('songs')
         .select('*')
         .eq('user_id', user.id)
+        .eq('is_global', true)
         .order('id', { ascending: true });
 
     if (error) {

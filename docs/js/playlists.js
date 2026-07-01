@@ -437,11 +437,12 @@ async function openMultiAddModal() {
 
     const user = JSON.parse(localStorage.getItem('currentUser'));
 
-    // Fetch all user songs
+    // Fetch all user songs (only global ones)
     const { data: songs, error: songsError } = await window.supabaseClient
         .from('songs')
         .select('*')
         .eq('user_id', user.id)
+        .eq('is_global', true)
         .order('title', { ascending: true });
 
     // Fetch songs already in the playlist
