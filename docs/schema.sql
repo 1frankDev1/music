@@ -1,4 +1,4 @@
--- Tablas para la aplicación de música
+-- Tablas para la aplicación de música (Viking Music)
 
 -- Tabla de usuarios (Manejo manual de auth)
 CREATE TABLE IF NOT EXISTS users (
@@ -40,7 +40,12 @@ CREATE TABLE IF NOT EXISTS playlist_songs (
     UNIQUE(playlist_id, song_id)
 );
 
--- Insertar usuario administrador inicial (como se solicitó)
-INSERT INTO users (id, username, password, role)
-VALUES (1, 'Antonio', 'Asd123', 'Admin')
-ON CONFLICT (username) DO NOTHING;
+-- Sentencia para agregar la columna is_global a tablas existentes sin borrar datos
+-- Si ya existe, fallará silenciosamente o no hará nada en la mayoría de gestores,
+-- pero es la forma segura de actualizar sin DROP.
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='songs' AND column_name='is_global') THEN
+        ALTER TABLE songs ADD COLUMN is_global BOOLEAN DEFAULT TRUE;
+    END IF;
+END $$;
