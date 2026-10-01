@@ -1,0 +1,108 @@
+====================================================================
+ GUÍA Y EXPLICACIÓN: INTEGRACIÓN DE CLOUDINARY EN EL PROYECTO HTML
+====================================================================
+
+1. RESUMEN DE CÓMO SE PUSIERON LAS CANCIONES EN EL HTML:
+--------------------------------------------------------------------
+- Subida (Upload): Se usa un envío HTTP POST (Fetch) desde el navegador hacia la API de Cloudinary utilizando la ruta `/video/upload` (Cloudinary procesa los archivos de audio .mp3 bajo la categoría `video`).
+- Parámetros enviados: El archivo .mp3 y el `upload_preset` configurado como "Unsigned" (sin firma).
+- Obtención de la URL: Cloudinary responde con un JSON que contiene `secure_url` (ejemplo: https://res.cloudinary.com/dp776nphp/video/upload/.../cancion.mp3).
+- Guardado y Renderizado: Esa URL se guarda en la base de datos (Supabase) en la columna `audio_url`. Al cargar la página, se recupera la URL y se asigna dinámicamente a la etiqueta `<audio src="URL_DE_CLOUDINARY">` o al reproductor principal mediante JavaScript (`audio.src = song.audio_url`).
+
+
+2. CREDENCIALES DE CLOUDINARY UTILIZADAS:
+--------------------------------------------------------------------
+- Cloud Name: dp776nphp
+- Upload Preset (Unsigned): vit0x7dr
+- API Key: 948282921511399
+
+
+3. MINI CÓDIGO DE EJEMPLO (GUÍA BÁSICA HTML + JS):
+--------------------------------------------------------------------
+
+--- [ index.html ] ---
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Mi Música Cloudinary</title>
+</head>
+<body>
+  <h2>Subir Canción (.mp3)</h2>
+  <input type="file" id="audioInput" accept="audio/*">
+  <button id="btnUpload">Subir a Cloudinary</button>
+  <p id="status"></p>
+
+  <h2>Reproductor</h2>
+  <!-- Elemento HTML5 de Audio para reproducir -->
+  <audio id="miReproductor" controls></audio>
+
+  <h2>Lista de Canciones</h2>
+  <div id="listaCanciones"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>
+
+--- [ app.js ] ---
+// Credenciales
+const CLOUD_NAME = 'dp776nphp';
+const UPLOAD_PRESET = 'vit0x7dr';
+
+const audioInput = document.getElementById('audioInput');
+const btnUpload = document.getElementById('btnUpload');
+const statusText = document.getElementById('status');
+const reproductor = document.getElementById('miReproductor');
+const listaCanciones = document.getElementById('listaCanciones');
+
+// Subir audio a Cloudinary
+btnUpload.addEventListener('click', async () => {
+  const file = audioInput.files[0];
+  if (!file) {
+    alert('Selecciona un archivo .mp3 primero');
+    return;
+  }
+
+  statusText.textContent = 'Subiendo a Cloudinary...';
+
+  const formData = new FormData();
+  formData.append('file', file);
+  formData.append('upload_preset', UPLOAD_PRESET);
+
+  try {
+    // Nota: Usamos /video/upload para archivos de audio (.mp3, .wav)
+    const response = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/video/upload`, {
+      method: 'POST',
+      body: formData
+    });
+
+    const data = await response.json();
+
+    if (data.secure_url) {
+      statusText.textContent = '¡Subida exitosa!';
+      // Agregar la canción a la interfaz HTML
+      agregarCancionAInterfaz(file.name, data.secure_url);
+    } else {
+      statusText.textContent = 'Error al subir: ' + (data.error ? data.error.message : 'Error desconocido');
+    }
+  } catch (err) {
+    statusText.textContent = 'Error de red: ' + err.message;
+  }
+});
+
+// Función para mostrar la canción en el HTML y hacerla reproducible
+function agregarCancionAInterfaz(nombre, urlAudio) {
+  const elemento = document.createElement('div');
+  elemento.style.margin = '10px 0';
+  elemento.innerHTML = `
+    <strong>${nombre}</strong>
+    <button onclick="reproducir('${urlAudio}')">▶ Play</button>
+  `;
+  listaCanciones.appendChild(elemento);
+}
+
+// Función para reproducir la canción en el tag <audio>
+function reproducir(url) {
+  reproductor.src = url;
+  reproductor.play();
+}
